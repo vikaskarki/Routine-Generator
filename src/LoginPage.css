@@ -59,6 +59,7 @@ label {
   font-size: 16px;
   margin-top: 10px;
   cursor: pointer;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 
@@ -79,4 +80,24 @@ label {
   display: inline-flex;
   justify-content: center;
   align-items: center;
+}
+
+.signup-btn {
+ width: 100%;
+  padding: 10px;
+  background: linear-gradient(to right, #36d1dc, #5b86e5); /* Blue gradient */
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-size: 16px;
+  margin-top: 10px;
+  cursor: pointer;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Hover effect for both buttons */
+.login-btn:hover,
+.signup-btn:hover {
+  background: black;   /* Turn background black */
+  color: white;        /* Keep text white */
 }

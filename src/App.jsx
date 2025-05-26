@@ -1,18 +1,17 @@
 import React from 'react';
 import LoginPage from './LoginPage';
+import TestFirestore from './TestFirestore';
 
 function App() {
-  return <LoginPage />;
+  return (
+    <div>
+      <LoginPage />
+      <TestFirestore />
+    </div>
+  );
 }
 
 export default App;
 
-// function App() {
-//   return (
-//     <div>
-//       <h1>Hello, world!</h1>
-//     </div>
-//   );
-// }
 
-// export default App;
+
