@@ -9,6 +9,10 @@
     "lint": "eslint .",
     "preview": "vite preview"
   },
+  "scripts": {
+  "start": "node index.js",
+  "dev": "vite"
+},
   "dependencies": {
     "firebase": "^11.8.0",
     "react": "^19.1.0",
