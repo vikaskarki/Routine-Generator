@@ -10,7 +10,8 @@
 
 /* White login card box */
 .login-card {
-  background: white;
+  background: rgba(255, 255, 255, 0.2); /*semi transparent white dinxa */
+  backdrop-filter: blur(10px); /*blurr effect dinxa*/
   padding: 40px;
   width: 300px;
   border-radius: 20px;

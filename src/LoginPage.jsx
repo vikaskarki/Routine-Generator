@@ -29,7 +29,7 @@ function LoginPage() {
   const handleLogin = async () => {
     try {
       await signInWithEmailAndPassword(auth, email, password); // Login using email and password
-      alert("✅ Logged in successfully!");
+      // alert("✅ Logged in successfully!");
     } catch (error) {
       console.error("Login Error:", error);
       alert("❌ Invalid email or password.");

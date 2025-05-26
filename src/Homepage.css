@@ -1,0 +1,243 @@
+/* === FULL PAGE LAYOUT === */
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+  /* ✨ Gradient background to match login page */
+  background: linear-gradient(to right, #3b82f6, #9333ea); 
+  background-attachment: fixed;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+/* === HEADER STYLING === */
+.header {
+  width: 92.5vw;
+  background: rgba(255, 255, 255, 0.2);   /* Slightly transparent white for contrast on gradient */
+  backdrop-filter: blur(10px);  
+  -webkit-backdrop-filter: blur(10px);         
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 50px;
+   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.header h1 {
+  font-size: 45px;
+  color: #000000;
+  font-weight: bold;
+  margin: 0;
+}
+
+.user-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.username {
+  font-weight: 100;
+  color: #000000;
+}
+
+.logout-btn {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  position: relative;
+  color: #000000;
+}
+
+.logout-btn::before {
+  content: "\f011"; /* Font Awesome power-off icon */
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+}
+
+.logout-btn:hover::after {
+  content: "Logout";
+  position: absolute;
+  top: -30px;
+  right: -10px;
+  background-color: #000;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 5px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* === MAIN CONTAINER === */
+.container {
+  display: flex;
+  padding: 50px;
+  gap: 40px;
+  height: calc(100vh - 100px); /* Full screen minus header */
+  box-sizing: border-box;
+}
+
+/* === MAIN CONTENT AREA === */
+.main-content {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.4);  
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+}
+
+/* Section title */
+.main-content h2 {
+  margin-bottom: 24px;
+  color: #090909;
+}
+
+/* === FORM ELEMENTS === */
+label {
+  display: block;
+  margin-top: 20px;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #e8ebf0;
+}
+
+select {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background-color: #fffafa;
+  font-size: 14px;
+  transition: border 0.3s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg fill='black' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+}
+
+select:focus {
+  border-color: #2563eb;
+  outline: none;
+}
+
+input[type="number"] {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background-color: #edebeb;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+input[type="number"]:focus {
+  border-color: #2563eb;
+  outline: none;
+}
+
+/* === CHECKBOX STYLING === */
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 10px;
+}
+
+.checkbox-group label {
+  background-color: #f3f4f6;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.checkbox-group label:hover {
+  background-color: #e5e7eb;
+}
+
+.checkbox-group input {
+  margin: 0;
+}
+
+/* === GRADIENT BUTTON STYLING (Matches Login Page) === */
+.generate-btn {
+  margin-top: 30px;
+  padding: 12px 24px;
+  
+  /* ✨ Gradient button */
+  background: linear-gradient(to right, #3b82f6, #9333ea);
+  color: #ffffff;
+  font-weight: 600;
+  border: none;
+  
+  /* ✨ Rounded pill shape */
+  border-radius: 9999px;
+
+  font-size: 16px;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  width: 100%;
+}
+
+.generate-btn:hover {
+  opacity: 0.9;
+  transform: scale(1.02);
+}
+
+/* === SIDEBAR === */
+.sidebar {
+  flex: 0.1;
+  background: rgba(255, 255, 255, 0.4); 
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+  height: fit-content;
+}
+
+.sidebar h3 {
+  margin-bottom: 16px;
+  color: #111827;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.sidebar li {
+  margin-bottom: 12px;
+}
+
+.sidebar a {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.sidebar a:hover {
+  color: #1d4ed8;
+}
+
+/* === FOOTER === */
+footer {
+  padding: 20px 0;
+  text-align: center;
+  color: #f3f4f6;
+  font-size: 14px;
+}
