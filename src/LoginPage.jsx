@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./LoginPage.css"; // This file holds the styles
 
 // Importing Firebase functions
@@ -7,12 +8,17 @@ import {
   signInWithPopup,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
 } from "firebase/auth";
+
+
 
 function LoginPage() {
   // These will store what the user types
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+
 
   // This function runs when we click the Google Sign-In button
   const handleGoogleSignIn = async () => {
@@ -28,10 +34,11 @@ function LoginPage() {
   // This runs when user clicks the Login button
   const handleLogin = async () => {
     try {
-      await signInWithEmailAndPassword(auth, email, password); // Login using email and password
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log("✅ Logged in user:", userCredential.user);
       // alert("✅ Logged in successfully!");
     } catch (error) {
-      console.error("Login Error:", error);
+      console.error("Login Error:", error.code, error.message);
       alert("❌ Invalid email or password.");
     }
   };
@@ -47,6 +54,7 @@ function LoginPage() {
     }
   };
 
+
   // This runs when user clicks the forget password button
   const handleForgotPassword = async () => {
     if (!email) {
@@ -55,14 +63,13 @@ function LoginPage() {
     }
 
     try {
-      await auth.sendPasswordResetEmail(email);
-      alert("📧 Password reset email sent. Check your inbox!");
+      await sendPasswordResetEmail(auth, email); // ✅ correctly calling the function
+      alert("📧 If this email is registered, a password reset link has been sent.");
     } catch (error) {
       console.error("Forgot Password Error:", error);
       alert(`❌ ${error.message}`);
     }
   };
-
 
   return (
     // This covers the full screen
@@ -95,9 +102,10 @@ function LoginPage() {
         </button>
 
         {/* Sign Up button */}
-        <button className="signup-btn" onClick={handleSignup}>
+        <button className="signup-btn" onClick={() => navigate("/signup")}>
           Sign Up
         </button>
+
 
         {/* Forgot Password */}
         <button className="forgot-password-btn" onClick={handleForgotPassword}>

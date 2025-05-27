@@ -8,19 +8,28 @@ import { auth } from './firebase';
 import LoginPage from './LoginPage';
 import TestFirestore from './TestFirestore';
 import HomePage from './Homepage';
+import SignupPage from "./SignupPage";
+
 
 function App() {
   // `user` will hold the currently logged-in user
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true); // loading state
+
 
   // When the app loads, check if a user is already logged in
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
-      setUser(currentUser); // Set user if logged in
+      console.log("Auth state changed: ", currentUser);
+      setUser(currentUser);
+      setLoading(false);
     });
-
-    return () => unsubscribe(); // Clean up listener when App unmounts
+    return () => unsubscribe();
   }, []);
+
+  if (loading) {
+    return <div>Loading...</div>; // Show a loading screen while checking auth
+  }
 
   return (
     <Router>
@@ -33,6 +42,10 @@ function App() {
 
         {/* Optional route: show Firestore test if needed */}
         <Route path="/test" element={<TestFirestore />} />
+
+        {/* If user is NOT registered, show signup; else redirect to homepage */}
+        <Route path="/signup" element={!user ? <SignupPage /> : <Navigate to="/" />} />
+
       </Routes>
     </Router>
   );
