@@ -47,6 +47,23 @@ function LoginPage() {
     }
   };
 
+  // This runs when user clicks the forget password button
+  const handleForgotPassword = async () => {
+    if (!email) {
+      alert("Please enter your email to reset password.");
+      return;
+    }
+
+    try {
+      await auth.sendPasswordResetEmail(email);
+      alert("📧 Password reset email sent. Check your inbox!");
+    } catch (error) {
+      console.error("Forgot Password Error:", error);
+      alert(`❌ ${error.message}`);
+    }
+  };
+
+
   return (
     // This covers the full screen
     <div className="login-page">
@@ -81,6 +98,12 @@ function LoginPage() {
         <button className="signup-btn" onClick={handleSignup}>
           Sign Up
         </button>
+
+        {/* Forgot Password */}
+        <button className="forgot-password-btn" onClick={handleForgotPassword}>
+          Forgot Password?
+        </button>
+
 
         {/* Divider */}
         <p className="or-text">or sign in using</p>
