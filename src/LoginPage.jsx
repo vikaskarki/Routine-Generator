@@ -1,17 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./LoginPage.css"; // This file holds the styles
+import "./LoginPage.css";
 
 // Importing Firebase functions
+import { signInWithPopup, signInWithEmailAndPassword, sendPasswordResetEmail, fetchSignInMethodsForEmail, GoogleAuthProvider, } from "firebase/auth";
 import { auth, provider } from "./firebase";
-import {
-  signInWithPopup,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  sendPasswordResetEmail,
-} from "firebase/auth";
-
-
 
 function LoginPage() {
   // These will store what the user types
@@ -23,11 +16,23 @@ function LoginPage() {
   // This function runs when we click the Google Sign-In button
   const handleGoogleSignIn = async () => {
     try {
-      await signInWithPopup(auth, provider); // Sign in using Google popup
-      alert("✅ Signed in with Google!");
+      provider.setCustomParameters({ prompt: "select_account" });
+
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      const signInMethods = await fetchSignInMethodsForEmail(auth, user.email);
+
+      if (!signInMethods.includes("google.com")) {
+        alert("❌ Account not registered with Google. Please sign up first.");
+        await auth.signOut(); // Important: logout the user
+        return;
+      }
+
+      navigate("/HomePage"); // or your desired route
     } catch (error) {
-      console.error("Google Sign-In Error:", error); // Log errors in console
-      alert("❌ Google Sign-In Failed.");
+      console.error("Google Sign-In Failed:", error.message);
+      alert("❌ Google Sign-In Failed. Please try again.");
     }
   };
 
@@ -39,20 +44,31 @@ function LoginPage() {
       // alert("✅ Logged in successfully!");
     } catch (error) {
       console.error("Login Error:", error.code, error.message);
-      alert("❌ Invalid email or password.");
+      if (error.code === "auth/user-not-found") {
+        alert("❌ Account not registered. Please sign up first.");
+      } else if (error.code === "auth/wrong-password") {
+        alert("❌ Incorrect password.");
+      } else if (error.code === "auth/invalid-email") {
+        alert("❌ Invalid email format.");
+      } else if (error.code === "auth/user-disabled") {
+        alert("❌ Your account has been disabled.");
+      } else {
+        alert(`❌ Login failed: ${error.message}`);
+      }
     }
+
+
   };
 
-  // This runs when user clicks the Sign Up button
-  const handleSignup = async () => {
-    try {
-      await createUserWithEmailAndPassword(auth, email, password); // Create new account
-      alert("✅ Account created successfully! You can now log in.");
-    } catch (error) {
-      console.error("Signup Error:", error);
-      alert("❌ Signup failed. Email might already be in use.");
-    }
-  };
+  // const handleSignup = async () => {
+  //   try {
+  //     await createUserWithEmailAndPassword(auth, email, password); // Create new account
+  //     alert("✅ Account created successfully! You can now log in.");
+  //   } catch (error) {
+  //     console.error("Signup Error:", error);
+  //     alert("❌ Signup failed. Email might already be in use.");
+  //   }
+  // };
 
 
   // This runs when user clicks the forget password button
@@ -89,11 +105,8 @@ function LoginPage() {
 
         {/* Password input */}
         <label>Password</label>
-        <input
-          type="password"
-          placeholder="Type your password"
-          value={password} // connects input to state
-          onChange={(e) => setPassword(e.target.value)} // updates password state
+        <input type="password" placeholder="Type your password"
+          value={password} onChange={(e) => setPassword(e.target.value)}
         />
 
         {/* Login button */}
@@ -112,11 +125,11 @@ function LoginPage() {
           Forgot Password?
         </button>
 
-
-        {/* Divider */}
+        {/* 
+        
         <p className="or-text">or sign in using</p>
 
-        {/* Google login button */}
+        // Google login button 
         <button className="google-btn" onClick={handleGoogleSignIn}>
           <img
             src="https://developers.google.com/identity/images/g-logo.png"
@@ -124,6 +137,7 @@ function LoginPage() {
             style={{ width: "20px", height: "20px" }}
           />
         </button>
+         */}
       </div>
     </div>
   );

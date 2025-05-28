@@ -3,14 +3,16 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth"; // Import getAuth to work with Firebase Auth
 import { getFirestore } from "firebase/firestore";
 
+
 // Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyAUvHQ32tJHmoSQYs4uW0-y5GkO3io3E1I",
-  authDomain: "routine-generator-9da44.firebaseapp.com",
-  projectId: "routine-generator-9da44",
-  storageBucket: "routine-generator-9da44.firebasestorage.app",
-  messagingSenderId: "184731543872",
-  appId: "1:184731543872:web:35c83cdba288baccb6f2a5"
+  apiKey: "AIzaSyCI2El0upq0vd4Pf6QrLSwEAlcXnyRFRTg",
+  authDomain: "routinegeneratorv2.firebaseapp.com",
+  projectId: "routinegeneratorv2",
+  storageBucket: "routinegeneratorv2.firebasestorage.app",
+  messagingSenderId: "348084523734",
+  appId: "1:348084523734:web:232d8ba97b0ddbf8d9af77",
+  measurementId: "G-Z2792161V8"
 };
 
 // Initialize Firebase
@@ -19,9 +21,8 @@ const app = initializeApp(firebaseConfig);
 // Initialize and export auth
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider(); // Create the Google provider
+const db = getFirestore(app);
 
 // Export them to use in other files  
-export { auth, provider};
 
-// Firestore 
-export const db = getFirestore(app); 
+export { auth, provider, db };

@@ -31,7 +31,7 @@ const HomePage = () => {
         <div className="user-controls">
           <span className="username">
             {/* Display logged-in user's email or "User" as fallback */}
-            Hi, {currentUser?.displayName || currentUser?.email || "User"}
+            Hi, {currentUser?.displayName || "User"}
 
           </span>
           <button className="logout-btn" onClick={handleLogout}>Logout</button>
