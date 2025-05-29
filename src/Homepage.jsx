@@ -3,6 +3,7 @@ import React from 'react';
 import './HomePage.css';
 import { auth } from './firebase'; // Firebase auth instance
 import { useNavigate } from 'react-router-dom'; // Used to redirect user after logout
+import TestFirestore from './TestFirestore';
 
 const HomePage = () => {
   const navigate = useNavigate(); // Hook to navigate programmatically
@@ -37,6 +38,7 @@ const HomePage = () => {
           <button className="logout-btn" onClick={handleLogout}>Logout</button>
         </div>
       </header>
+      <TestFirestore/>
 
       {/* Main content layout */}
       <div className="container">
