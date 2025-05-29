@@ -98,3 +98,28 @@ a {
 a:hover {
     color: #0056b3;
 }
+
+.resend-btn {
+    background-color: #f0f0f0;
+    color: #333;
+    padding: px 20px;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+.resend-btn:hover {
+    background-color: #e0e0e0;
+    border-color: #999;
+}
+
+.resend-btn:disabled {
+    background-color: #ddd;
+    color: #999;
+    border-color: #aaa;
+    cursor: not-allowed;
+}
