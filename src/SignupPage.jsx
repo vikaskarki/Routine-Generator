@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import "./SignupPage.css"; // Import styles
-import emailjs from 'emailjs-com'; // email verification
+import "./SignupPage.css";
+import emailjs from 'emailjs-com'; //for email verification
 import { useNavigate } from "react-router-dom"; // Used for redirecting user
 import { createUserWithEmailAndPassword, signOut, updateProfile, } from "firebase/auth";
-import { auth, db } from "./firebase"; // Firebase Auth instance
+import { auth, db } from './firebase';
 import { doc, setDoc } from "firebase/firestore";
 
 function SignupPage() {
@@ -18,7 +18,7 @@ function SignupPage() {
 
     const navigate = useNavigate(); // For redirecting user after signup
 
-    // This block generate and send OTP
+    // This block generate and send OTP to the email provided.
     const sendOTP = () => {
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         setGeneratedOTP(otp);
@@ -105,7 +105,7 @@ function SignupPage() {
 
                 {!otpSent && (
                     <>
-                        {/*Input Field */}
+                        {/*___________________Input Field ______________________*/}
                         <label>Name</label>
                         <input type="text" placeholder="Enter your name"
                             value={name} onChange={(e) => setName(e.target.value)} // Update name state
@@ -143,6 +143,7 @@ function SignupPage() {
                     </>
                 )}
 
+                {/*************************Input Field************************/}
 
 
                 <p className="or-text">Already have an account?</p>

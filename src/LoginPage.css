@@ -129,16 +129,14 @@ select {
   padding: 10px;
   margin-top: 5px;
   margin-bottom: 15px;
-  border: none;
+  border: 1px solid #ccc;
   border-radius: 5px;
-  background: #ffffff;
+  background-color: #ffffff;
   font-size: 14px;
   color: black;
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%204%205'%3E%3Cpath%20fill='black'%20d='M2%200L0%202h4L2%200zm0%205L0%203h4l-2%202z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 10px;
+
+  appearance: auto;
+  background-image: none;
 }
 
 select:focus {

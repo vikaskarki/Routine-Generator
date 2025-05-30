@@ -1,7 +1,7 @@
 // Importing React, Firebase auth, and CSS
 import React from 'react';
 import './HomePage.css';
-import { auth } from './firebase'; // Firebase auth instance
+import { auth } from './firebase';
 import { useNavigate } from 'react-router-dom'; // Used to redirect user after logout
 import TestFirestore from './TestFirestore';
 
@@ -38,7 +38,7 @@ const HomePage = () => {
           <button className="logout-btn" onClick={handleLogout}>Logout</button>
         </div>
       </header>
-      <TestFirestore/>
+      <TestFirestore />
 
       {/* Main content layout */}
       <div className="container">

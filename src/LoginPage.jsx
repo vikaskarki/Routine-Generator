@@ -5,7 +5,8 @@ import "./LoginPage.css";
 // Importing Firebase functions
 import { signInWithEmailAndPassword, sendPasswordResetEmail, GoogleAuthProvider, } from "firebase/auth";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { auth, db } from "./firebase";
+import { auth, db } from './firebase';
+
 
 function LoginPage() {
   // These will store what the user types
@@ -71,17 +72,6 @@ function LoginPage() {
     }
   };
 
-  // const handleSignup = async () => {
-  //   try {
-  //     await createUserWithEmailAndPassword(auth, email, password); // Create new account
-  //     alert("✅ Account created successfully! You can now log in.");
-  //   } catch (error) {
-  //     console.error("Signup Error:", error);
-  //     alert("❌ Signup failed. Email might already be in use.");
-  //   }
-  // };
-
-
   // This runs when user clicks the forget password button
   const handleForgotPassword = async () => {
     if (!email) {
@@ -99,7 +89,8 @@ function LoginPage() {
   };
 
   return (
-    // This covers the full screen
+    // Login Form
+
     <div className="login-page">
       {/* This is the card in the center */}
       <div className="login-card">
@@ -142,7 +133,7 @@ function LoginPage() {
         </button>
 
         {/* 
-        
+
         <p className="or-text">or sign in using</p>
 
         // Google login button 
@@ -154,6 +145,7 @@ function LoginPage() {
           />
         </button>
          */}
+
       </div>
     </div>
   );
