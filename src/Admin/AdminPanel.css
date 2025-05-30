@@ -1,0 +1,118 @@
+body {
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(to right, #00c9ff, #92fe9d);
+    min-height: 100vh;
+}
+
+.admin-panel-container {
+    justify-content: center;
+    max-width: 800px;
+    margin: 40px auto;
+    background: white;
+    padding: 30px 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.admin-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.admin-panel-header h2 {
+    font-size: 26px;
+    color: #333;
+}
+
+.admin-panel-user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+}
+
+.logout-button {
+    padding: 6px 14px;
+    background-color: #e63946;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.logout-button:hover {
+    background-color: #c82333;
+}
+
+.admin-panel-section {
+    margin-bottom: 25px;
+}
+
+.admin-panel-section label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #555;
+}
+
+.admin-panel-section select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background: #f9f9f9;
+    font-size: 16px;
+}
+
+h3 {
+    margin-top: 30px;
+    color: #444;
+    font-weight: 600;
+}
+
+.subject-form {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.subject-form input {
+    flex: 1;
+    padding: 10px;
+    font-size: 15px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+.subject-form button {
+    padding: 10px 18px;
+    font-size: 15px;
+    background-color: #111;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.subject-form button:hover {
+    background-color: #444;
+}
+
+.subject-list {
+    margin-top: 15px;
+    padding-left: 20px;
+    color: #333;
+}
+
+.subject-list li {
+    margin-bottom: 5px;
+    font-size: 15px;
+}

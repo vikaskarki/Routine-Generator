@@ -1,11 +1,8 @@
 /* Full screen with gradient */
 .login-page {
   height: 100vh;
-  /* Full screen */
   width: 100vw;
-  /* Full width */
   background: linear-gradient(to right, #00c9ff, #92fe9d, #f2709c);
-  /* Colorful gradient */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -124,4 +121,27 @@ label {
 
 .forgot-password-btn:hover {
   color: #0056b3;
+}
+
+/* Role dropdown style */
+select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  margin-bottom: 15px;
+  border: none;
+  border-radius: 5px;
+  background: #ffffff;
+  font-size: 14px;
+  color: black;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%204%205'%3E%3Cpath%20fill='black'%20d='M2%200L0%202h4L2%200zm0%205L0%203h4l-2%202z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 10px;
+}
+
+select:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3);
 }

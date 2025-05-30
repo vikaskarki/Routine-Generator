@@ -1,51 +1,66 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { auth, db } from './firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
-// Import Firebase auth to track user login status
-import { auth } from './firebase';
-
-// Import your components
 import LoginPage from './LoginPage';
 import TestFirestore from './TestFirestore';
 import HomePage from './Homepage';
 import SignupPage from "./SignupPage";
-
+import AdminPanel from "./Admin/AdminPanel";
 
 function App() {
-  // `user` will hold the currently logged-in user
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // loading state
+  const [role, setRole] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-
-  // When the app loads, check if a user is already logged in
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
-      console.log("Auth state changed: ", currentUser);
-      setUser(currentUser);
+    const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+
+        // Check Firestore for role
+        const adminQuery = query(collection(db, "admins"), where("email", "==", currentUser.email));
+        const adminSnapshot = await getDocs(adminQuery);
+        if (!adminSnapshot.empty) {
+          setRole("admin");
+        } else {
+          const userQuery = query(collection(db, "users"), where("email", "==", currentUser.email));
+          const userSnapshot = await getDocs(userQuery);
+          if (!userSnapshot.empty) {
+            setRole("user");
+          } else {
+            setRole(null);
+          }
+        }
+      } else {
+        setUser(null);
+        setRole(null);
+      }
       setLoading(false);
     });
+
     return () => unsubscribe();
   }, []);
 
   if (loading) {
-    return <div>Loading...</div>; // Show a loading screen while checking auth
+    return <div style={{ backgroundColor: "#00c9ff", height: "100vh" }}></div>; // Blue screen while loading
   }
 
   return (
     <Router>
       <Routes>
-        {/* If user is logged in, go to homepage; else redirect to login */}
-        <Route path="/" element={user ? <HomePage /> : <Navigate to="/login" />} />
+        <Route path="/" element={user ? (role === "admin" ? <Navigate to="/admin" /> : <HomePage />) : <Navigate to="/login" />} />
 
-        {/* If user is NOT logged in, show login; else redirect to homepage */}
+        <Route path="/admin" element={user && role === "admin" ? <AdminPanel /> : <Navigate to="/" />} />
+
         <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/" />} />
 
-        {/* Optional route: show Firestore test if needed */}
-        <Route path="/test" element={<TestFirestore />} />
-
-        {/* If user is NOT registered, show signup; else redirect to homepage */}
         <Route path="/signup" element={!user ? <SignupPage /> : <Navigate to="/" />} />
 
+        <Route path="/test" element={<TestFirestore />} />
+
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
   );

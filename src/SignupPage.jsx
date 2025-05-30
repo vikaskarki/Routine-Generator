@@ -1,10 +1,10 @@
 import React, { useState } from "react";
+import "./SignupPage.css"; // Import styles
+import emailjs from 'emailjs-com'; // email verification
 import { useNavigate } from "react-router-dom"; // Used for redirecting user
 import { createUserWithEmailAndPassword, signOut, updateProfile, } from "firebase/auth";
 import { auth, db } from "./firebase"; // Firebase Auth instance
-import { setDoc, doc } from "firebase/firestore";
-import emailjs from 'emailjs-com'; // email verification
-import "./SignupPage.css"; // Import styles
+import { doc, setDoc } from "firebase/firestore";
 
 function SignupPage() {
     // State variables to store input values
@@ -71,17 +71,17 @@ function SignupPage() {
 
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-
+            const user = userCredential.user;
             // ✅ Update the user's display name in Firebase
-            await updateProfile(userCredential.user, {
+            await updateProfile(user, {
                 displayName: name,
             });
 
-            await setDoc(doc(db, "users", userCredential.user.uid), {
-                name: name,
-                email: email,
-                createdAt: new Date()
+            await setDoc(doc(db, "users", user.uid), {
+                email: user.email,
+                role: "user"
             });
+
 
             // ✅ Sign out to go to login
             await signOut(auth);
@@ -99,8 +99,8 @@ function SignupPage() {
 
     //signup form
     return (
-        <div className="login-page">
-            <div className="login-card">
+        <div className="signup-page">
+            <div className="signup-card">
                 <h2 className="title">Create Account</h2>
 
                 {!otpSent && (
