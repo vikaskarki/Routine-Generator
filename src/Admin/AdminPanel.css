@@ -34,6 +34,11 @@ body {
     align-items: center;
     gap: 10px;
     font-size: 14px;
+    color: black;
+}
+
+.admin-panel-user-info strong {
+    color: black;
 }
 
 .logout-button {
