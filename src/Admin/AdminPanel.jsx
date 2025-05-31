@@ -2,10 +2,8 @@ import React, { useState, useEffect } from "react";
 import { getAuth, signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { db } from '../firebase';
-import { collection, addDoc } from "firebase/firestore";
-import { getDocs, query, where } from "firebase/firestore";
-import { doc, updateDoc } from "firebase/firestore";
-import { deleteDoc } from "firebase/firestore";
+import { getDocs, query, where, addDoc } from "firebase/firestore";
+import { doc, updateDoc, deleteDoc, collection } from "firebase/firestore";
 
 import './AdminPanel.css';
 
@@ -24,6 +22,7 @@ const AdminPanel = () => {
     const navigate = useNavigate();
     const auth = getAuth();
 
+    // On component mount: get current user and fetch subjects
     useEffect(() => {
         const auth = getAuth();
         const currentUser = auth.currentUser;
@@ -62,7 +61,7 @@ const AdminPanel = () => {
     };
 
 
-
+    // Handle subject addition 
     const handleAddSubject = async () => {
         if (!subjectName || !credit || !department || !year || !semester) {
             alert("Please fill all fields before adding a subject.");
@@ -106,12 +105,13 @@ const AdminPanel = () => {
         }
     };
 
-
+    // Handle logout of current admin
     const handleLogout = async () => {
         await signOut(auth);
         navigate("/login");
     };
 
+    // Mapping year to its corresponding semesters
     const yearSemesterMap = {
         "1st Year": ["1st Semester", "2nd Semester"],
         "2nd Year": ["3rd Semester", "4th Semester"],
@@ -119,12 +119,14 @@ const AdminPanel = () => {
         "4th Year": ["7th Semester", "8th Semester"],
     };
 
+    //for editing the subjects 
     const handleEdit = (subj) => {
         setEditMode(subj.id);
         setEditName(subj.subjectName);
         setEditCredit(subj.credit);
     };
 
+    // firestore ma rw admin panel ma subject update hunxa
     const handleUpdate = async (id) => {
         try {
             const subjectRef = doc(db, "subjects", id);
@@ -144,6 +146,7 @@ const AdminPanel = () => {
         }
     };
 
+    // Delete subject from Firestore and remove from UI
     const handleDelete = async (id) => {
         try {
             await deleteDoc(doc(db, "subjects", id));
@@ -157,6 +160,8 @@ const AdminPanel = () => {
 
 
     return (
+        // --------------------- Admin Panel ---------------------
+
         <div className="admin-panel-container">
             <div className="admin-panel-header">
                 <h2>🛠 Admin Panel</h2>
@@ -166,6 +171,7 @@ const AdminPanel = () => {
                 </div>
             </div>
 
+            {/* Year Selection */}
             <div className="admin-panel-section">
                 <label>Year:</label>
                 <select value={year} onChange={(e) => {
@@ -179,6 +185,7 @@ const AdminPanel = () => {
                 </select>
             </div>
 
+            {/* yo block lae if year select gareko xa vani semester select garnu milxa */}
             {year && (
                 <div className="admin-panel-section">
                     <label>Semester:</label>

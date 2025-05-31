@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import "./SignupPage.css";
-import emailjs from 'emailjs-com'; //for email verification
-import { useNavigate } from "react-router-dom"; // Used for redirecting user
-import { createUserWithEmailAndPassword, signOut, updateProfile, } from "firebase/auth";
-import { auth, db } from './firebase';
-import { doc, setDoc } from "firebase/firestore";
+import "./SignupPage.css"; // Import CSS for styling
+import emailjs from 'emailjs-com'; // EmailJS used for sending OTPs via email
+import { useNavigate } from "react-router-dom"; // For redirecting 
+import { createUserWithEmailAndPassword, signOut, updateProfile } from "firebase/auth";
+import { auth, db } from './firebase'; // Firebase config
+import { doc, setDoc } from "firebase/firestore"; // To write user data to Firestore
 
 function SignupPage() {
     // State variables to store input values
@@ -16,9 +16,9 @@ function SignupPage() {
     const [userOtp, setUserOtp] = useState("");
 
 
-    const navigate = useNavigate(); // For redirecting user after signup
+    const navigate = useNavigate(); // For redirecting user after registration
 
-    // This block generate and send OTP to the email provided.
+    // generate and send OTP to the email provided.
     const sendOTP = () => {
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         setGeneratedOTP(otp);
@@ -56,13 +56,13 @@ function SignupPage() {
             alert("❌ Please enter a valid email address.");
             return;
         }
-        // this block send otp code and wait till user enter OTP
+        // Send OTP if not sent
         if (!otpSent) {
             sendOTP();
         }
     };
 
-    // Handle OTP verification and account creation
+    // --------------------Verify OTP & Create Firebase Account --------------------
     const verifyAndSignup = async () => {
         if (userOtp !== generatedOtp) {
             alert("❌ Incorrect OTP. Please try again.");
@@ -83,7 +83,7 @@ function SignupPage() {
             });
 
 
-            // ✅ Sign out to go to login
+            // ✅ Sign out and go to login
             await signOut(auth);
 
 
@@ -97,7 +97,7 @@ function SignupPage() {
         }
     };
 
-    //signup form
+    // --------------------- Signup Form ---------------------
     return (
         <div className="signup-page">
             <div className="signup-card">
@@ -142,9 +142,7 @@ function SignupPage() {
                         </button>
                     </>
                 )}
-
                 {/*************************Input Field************************/}
-
 
                 <p className="or-text">Already have an account?</p>
                 <button className="login-btn" onClick={() => navigate("/login")}>

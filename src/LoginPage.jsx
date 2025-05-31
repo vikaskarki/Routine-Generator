@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./LoginPage.css";
 
-// Importing Firebase functions
+// Import Firebase functions for authentication and Firestore queries
 import { signInWithEmailAndPassword, sendPasswordResetEmail, GoogleAuthProvider, } from "firebase/auth";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { auth, db } from './firebase';
@@ -42,23 +42,28 @@ function LoginPage() {
 
 
 
-  // This runs when user clicks the Login button
+  // ---------------------- Handle Email/Password Login ----------------------
   const handleLogin = async () => {
     if (!role) {
       alert("❌ Please select a role before logging in.");
       return;
     }
     try {
+      // Determine the Firestore collection to query based on role
+
       const collectionName = role === "admin" ? "admins" : "users";
       const q = query(collection(db, collectionName), where("email", "==", email.trim()));
       const snapshot = await getDocs(q);
 
+      // jun role ko lai assign gareko xa tei selest garnu parxa
       if (snapshot.empty) {
         alert(`❌ This account is not registered as a ${role}.`);
         return;
       }
 
       await signInWithEmailAndPassword(auth, email.trim(), password);
+
+      //  role aanusar ko panel ma login hunxa
 
       if (role === "admin") {
         navigate("/admin");
@@ -72,7 +77,7 @@ function LoginPage() {
     }
   };
 
-  // This runs when user clicks the forget password button
+  // --------------------- Handle Forgot Password Request ---------------------
   const handleForgotPassword = async () => {
     if (!email) {
       alert("Please enter your email to reset password.");
@@ -80,7 +85,8 @@ function LoginPage() {
     }
 
     try {
-      await sendPasswordResetEmail(auth, email); // ✅ correctly calling the function
+      // Send password reset email using Firebase
+      await sendPasswordResetEmail(auth, email);
       alert("📧 If this email is registered, a password reset link has been sent.");
     } catch (error) {
       console.error("Forgot Password Error:", error);
@@ -89,8 +95,8 @@ function LoginPage() {
   };
 
   return (
-    // Login Form
 
+    // --------------------- Login Form ---------------------
     <div className="login-page">
       {/* This is the card in the center */}
       <div className="login-card">
