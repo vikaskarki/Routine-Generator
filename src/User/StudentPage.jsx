@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { auth, db } from '../firebase';
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
+
 import "./StudentPage.css";
 
 function StudentPage() {
@@ -103,13 +104,6 @@ function StudentPage() {
     const removeBackSubject = subject => {
         setSelectedBackSubjects(selectedBackSubjects.filter(s => s.name !== subject));
     };
-
-
-
-
-
-
-
 
 
     const logout = () => {
