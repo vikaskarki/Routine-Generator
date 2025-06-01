@@ -18,6 +18,8 @@ const AdminPanel = () => {
     const [editMode, setEditMode] = useState(null);
     const [editName, setEditName] = useState("");
     const [editCredit, setEditCredit] = useState("");
+    const [batch, setBatch] = useState("");
+
 
     const navigate = useNavigate();
     const auth = getAuth();
@@ -32,22 +34,26 @@ const AdminPanel = () => {
         }
 
         fetchSubjects();
-    }, [department, year, semester]);
+    }, [department, year, semester, batch]);
+
 
 
     const fetchSubjects = async () => {
-        if (!department || !year || !semester) {
+        if (!department || !year || !semester || !batch) {
             setAllSubjects([]);
             return;
         }
+
 
         try {
             const q = query(
                 collection(db, "subjects"),
                 where("department", "==", department),
                 where("year", "==", year),
-                where("semester", "==", semester)
+                where("semester", "==", semester),
+                where("batch", "==", batch)
             );
+
 
             const querySnapshot = await getDocs(q);
             const fetched = querySnapshot.docs.map(doc => ({
@@ -75,8 +81,10 @@ const AdminPanel = () => {
                 where("subjectName", "==", subjectName),
                 where("department", "==", department),
                 where("year", "==", year),
-                where("semester", "==", semester)
+                where("semester", "==", semester),
+                where("batch", "==", batch)
             );
+
 
             const existing = await getDocs(q);
 
@@ -92,6 +100,7 @@ const AdminPanel = () => {
                 department,
                 year,
                 semester,
+                batch,
             };
 
             await addDoc(collection(db, "subjects"), newSubject);
@@ -173,6 +182,14 @@ const AdminPanel = () => {
 
             {/* Year Selection */}
             <div className="admin-panel-section">
+
+                <label>Batch:</label>
+                <select value={batch} onChange={(e) => setBatch(e.target.value)}>
+                    <option value="">Select Batch</option>
+                    <option value="New">New </option>
+                    <option value="Old">Old </option>
+                </select>
+
                 <label>Year:</label>
                 <select value={year} onChange={(e) => {
                     setYear(e.target.value);
@@ -250,6 +267,9 @@ const AdminPanel = () => {
                                 {subj.subjectName} - {subj.credit} credit(s)
                                 <button className="edit-btn" onClick={() => handleEdit(subj)}>✏️ Edit</button>
                                 <button className="delete-btn" onClick={() => handleDelete(subj.id)}>🗑️ Delete</button>
+
+
+
                             </>
                         )}
                     </li>

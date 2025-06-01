@@ -1,0 +1,169 @@
+.student-container {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 20px;
+    background: #f9f9f9;
+    border-radius: 16px;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.welcome-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+}
+
+.logout-button {
+    padding: 8px 16px;
+    background-color: #e53935;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s ease;
+}
+
+.logout-button:hover {
+    background-color: #c62828;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #2c3e50;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #444;
+}
+
+select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    background-color: #fff;
+}
+
+.row-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+    /* Reduced space between rows */
+}
+
+.half-width {
+    flex: 1 1 300px;
+    min-width: 220px;
+}
+
+.routine-section-columns {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.subject-column {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    width: 320px;
+    min-height: 200px;
+}
+
+.subject-column h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.subject-column ul {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.subject-column li {
+    background-color: #e6fff1;
+    color: #1b5e20;
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    word-break: break-word;
+    display: block;
+}
+
+.subject-column li.back {
+    background-color: #ffeaea;
+    color: #b71c1c;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.remove-btn {
+    background: transparent;
+    border: none;
+    color: #b71c1c;
+    font-size: 18px;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+.remove-btn:hover {
+    color: #f44336;
+}
+
+.generate-button {
+    margin: 30px auto 0 auto;
+    width: 75%;
+    text-align: center;
+}
+
+button.generate-button {
+    display: block;
+    width: 35%;
+    padding: 12px 20px;
+    background-color: #3498db;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+button.generate-button:hover {
+    background-color: #2980b9;
+}
+
+.generate-button:hover {
+    color: white;
+}

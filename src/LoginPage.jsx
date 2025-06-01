@@ -68,7 +68,7 @@ function LoginPage() {
       if (role === "admin") {
         navigate("/admin");
       } else {
-        navigate("/HomePage");
+        navigate("/student");
       }
 
     } catch (error) {
