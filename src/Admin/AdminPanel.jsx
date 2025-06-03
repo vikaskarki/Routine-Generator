@@ -44,7 +44,6 @@ const AdminPanel = () => {
             return;
         }
 
-
         try {
             const q = query(
                 collection(db, "subjects"),
