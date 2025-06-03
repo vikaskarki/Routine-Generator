@@ -120,18 +120,18 @@ h3 {
 }
 
 .subject-list li {
-    margin-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
     font-size: 15px;
+    padding-right: 10px;
 }
 
-.subject-list button {
-    margin-left: 8px;
-    padding: 4px 10px;
-    border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background 0.3s ease, color 0.3s ease;
+.subject-buttons {
+    display: flex;
+    gap: 8px;
+    min-width: 120px;
 }
 
 .edit-btn {
@@ -168,4 +168,9 @@ h3 {
 
 .cancel-btn:hover {
     background-color: #5a6268;
+}
+
+.generate-btn {
+    background-color: #2200ff;
+    color: white;
 }

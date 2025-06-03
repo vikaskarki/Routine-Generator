@@ -181,104 +181,107 @@ const AdminPanel = () => {
             </div>
 
             {/* Year Selection */}
-            <div className="admin-panel-section">
+            <div className="admin-panel-content">
+                <div className="admin-form-section">
+                    <label>Department:</label>
+                    <select value={department} onChange={(e) => setDepartment(e.target.value)}>
+                        <option value="">Select Department</option>
+                        <option value="Computer">Computer</option>
+                        <option value="Civil">Civil</option>
+                        <option value="IT">IT</option>
+                    </select>
 
-                <label>Batch:</label>
-                <select value={batch} onChange={(e) => setBatch(e.target.value)}>
-                    <option value="">Select Batch</option>
-                    <option value="New">New </option>
-                    <option value="Old">Old </option>
-                </select>
+                    <label>Batch:</label>
+                    <select value={batch} onChange={(e) => setBatch(e.target.value)}>
+                        <option value="">Select Batch</option>
+                        <option value="New">New </option>
+                        <option value="Old">Old </option>
+                    </select>
 
-                <label>Year:</label>
-                <select value={year} onChange={(e) => {
-                    setYear(e.target.value);
-                    setSemester("");
-                }}>
-                    <option value="">Select Year</option>
-                    {Object.keys(yearSemesterMap).map((yr) => (
-                        <option key={yr} value={yr}>{yr}</option>
-                    ))}
-                </select>
-            </div>
-
-            {/* yo block lae if year select gareko xa vani semester select garnu milxa */}
-            {year && (
-                <div className="admin-panel-section">
-                    <label>Semester:</label>
-                    <select value={semester} onChange={(e) => setSemester(e.target.value)}>
-                        <option value="">Select Semester</option>
-                        {yearSemesterMap[year].map((sem) => (
-                            <option key={sem} value={sem}>{sem}</option>
+                    <label>Year:</label>
+                    <select value={year} onChange={(e) => {
+                        setYear(e.target.value);
+                        setSemester("");
+                    }}>
+                        <option value="">Select Year</option>
+                        {Object.keys(yearSemesterMap).map((yr) => (
+                            <option key={yr} value={yr}>{yr}</option>
                         ))}
                     </select>
                 </div>
-            )}
 
-            <div className="admin-panel-section">
-                <label>Department:</label>
-                <select value={department} onChange={(e) => setDepartment(e.target.value)}>
-                    <option value="">Select Department</option>
-                    <option value="Computer">Computer</option>
-                    <option value="Civil">Civil</option>
-                    <option value="IT">IT</option>
-                </select>
+                {/* yo block lae if year select gareko xa vani semester select garnu milxa */}
+                {year && (
+                    <div className="admin-panel-content">
+                        <label>Semester:</label>
+                        <select value={semester} onChange={(e) => setSemester(e.target.value)}>
+                            <option value="">Select Semester</option>
+                            {yearSemesterMap[year].map((sem) => (
+                                <option key={sem} value={sem}>{sem}</option>
+                            ))}
+                        </select>
+                    </div>
+                )}
+
+                <hr />
+
+                <h3>Add Subject</h3>
+                <div className="subject-form">
+                    <input
+                        type="text"
+                        placeholder="Subject Name"
+                        value={subjectName}
+                        onChange={(e) => setSubjectName(e.target.value)}
+                    />
+                    <input
+                        type="number"
+                        placeholder="Credit"
+                        value={credit}
+                        onChange={(e) => setCredit(e.target.value)}
+                    />
+                    <button onClick={handleAddSubject}>Add Subject</button>
+                </div>
             </div>
 
-            <hr />
+            <div className="subject-list-section">
+                <h3>Subjects List</h3>
+                <ul className="subject-list">
+                    {allSubjects.map((subj) => (
+                        <li key={subj.id}>
+                            {editMode === subj.id ? (
+                                <>
+                                    <input
+                                        value={editName}
+                                        onChange={(e) => setEditName(e.target.value)}
+                                    />
+                                    <input
+                                        type="number"
+                                        value={editCredit}
+                                        onChange={(e) => setEditCredit(e.target.value)}
+                                    />
+                                    <div className="subject-buttons">
+                                        <button className="save-btn" onClick={() => handleUpdate(subj.id)}>✅ Save</button>
+                                        <button className="cancel-btn" onClick={() => setEditMode(null)}>❌ Cancel</button>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <span>{subj.subjectName} - {subj.credit} credit(s)</span>
+                                    <div className="subject-buttons">
+                                        <button className="edit-btn" onClick={() => handleEdit(subj)}>✏️ Edit</button>
+                                        <button className="delete-btn" onClick={() => handleDelete(subj.id)}>🗑️ Delete</button>
+                                    </div>
+                                </>
 
-            <h3>Add Subject</h3>
-            <div className="subject-form">
-                <input
-                    type="text"
-                    placeholder="Subject Name"
-                    value={subjectName}
-                    onChange={(e) => setSubjectName(e.target.value)}
-                />
-                <input
-                    type="number"
-                    placeholder="Credit"
-                    value={credit}
-                    onChange={(e) => setCredit(e.target.value)}
-                />
-                <button onClick={handleAddSubject}>Add Subject</button>
+                            )}
+                        </li>
+                    ))}
+                </ul>
             </div>
-
-            <h3>Subjects List</h3>
-            <ul className="subject-list">
-                {allSubjects.map((subj) => (
-                    <li key={subj.id}>
-                        {editMode === subj.id ? (
-                            <>
-                                <input
-                                    value={editName}
-                                    onChange={(e) => setEditName(e.target.value)}
-                                />
-                                <input
-                                    type="number"
-                                    value={editCredit}
-                                    onChange={(e) => setEditCredit(e.target.value)}
-                                />
-                                <button className="save-btn" onClick={() => handleUpdate(subj.id)}>✅ Save</button>
-                                <button className="cancel-btn" onClick={() => setEditMode(null)}>❌ Cancel</button>
-                            </>
-                        ) : (
-                            <>
-                                {subj.subjectName} - {subj.credit} credit(s)
-                                <button className="edit-btn" onClick={() => handleEdit(subj)}>✏️ Edit</button>
-                                <button className="delete-btn" onClick={() => handleDelete(subj.id)}>🗑️ Delete</button>
+            <button className="generate-btn" > Generate Routine</button>
 
 
-
-                            </>
-                        )}
-                    </li>
-                ))}
-            </ul>
-
-
-
-        </div>
+        </div >
     );
 };
 

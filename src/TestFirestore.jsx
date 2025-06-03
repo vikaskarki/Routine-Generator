@@ -2,17 +2,16 @@
 import React, { useEffect } from 'react';
 import { db } from './firebase'; // Firestore instance from firebase.js
 import { collection, addDoc } from 'firebase/firestore'; // Firestore functions
-import { getAuth } from 'firebase/auth'; // To get the currently logged-in user
+import { getAuth, onAuthStateChanged } from 'firebase/auth'; // Auth and listener
 
 function TestFirestore() {
   useEffect(() => {
     console.log("🚀 TestFirestore component mounted");
 
-    // Define an async function to add user data to Firestore
-    const testFirestore = async () => {
-      const auth = getAuth(); // Get the current Firebase Auth instance
-      const user = auth.currentUser; // Get the currently authenticated user
+    const auth = getAuth(); // Get the current Firebase Auth instance
 
+    // Listen for changes in authentication state (e.g., login or logout)
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       // Only proceed if a user is logged in
       if (user) {
         try {
@@ -32,10 +31,10 @@ function TestFirestore() {
         // If no user is logged in, show a warning
         console.warn("⚠️ No user is currently logged in. Cannot write to Firestore.");
       }
-    };
+    });
 
-    // Call the async function
-    testFirestore();
+    // Cleanup the listener when the component unmounts
+    return () => unsubscribe();
   }, []); // Empty dependency array ensures this runs only once when the component mounts
 
   return (

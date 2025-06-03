@@ -55,20 +55,45 @@ function StudentPage() {
     // ✅ Fetch Backlog Semesters (grouped as "year - semester")
     useEffect(() => {
         const fetchBackSemesters = async () => {
+            if (!batch || !department || !semester) return;
+
+            const semesterOrder = [
+                "1st Semester", "2nd Semester", "3rd Semester", "4th Semester",
+                "5th Semester", "6th Semester", "7th Semester", "8th Semester"
+            ];
+
+            const currentSemesterIndex = semesterOrder.indexOf(semester);
+            if (currentSemesterIndex === -1) return;
+
             const q = query(
                 collection(db, "subjects"),
                 where("batch", "==", batch),
                 where("department", "==", department)
             );
             const snapshot = await getDocs(q);
+
             const semestersSet = new Set();
             snapshot.forEach(doc => {
-                semestersSet.add(`${doc.data().year} - ${doc.data().semester}`);
+                const docSemester = doc.data().semester;
+                const docYear = doc.data().year;
+                const semIndex = semesterOrder.indexOf(docSemester);
+                if (semIndex !== -1 && semIndex < currentSemesterIndex) {
+                    semestersSet.add(`${docYear} - ${docSemester}`);
+                }
             });
-            setBackSemesters(Array.from(semestersSet));
+
+            const sortedSemesters = Array.from(semestersSet).sort((a, b) => {
+                const [, aSem] = a.split(" - ");
+                const [, bSem] = b.split(" - ");
+                return semesterOrder.indexOf(aSem) - semesterOrder.indexOf(bSem);
+            });
+
+            setBackSemesters(sortedSemesters);
         };
-        if (batch && department) fetchBackSemesters();
-    }, [batch, department]);
+
+        fetchBackSemesters();
+    }, [batch, department, semester]);
+
 
     // ✅ Fetch Back Subjects for Selected Backlog Semester
     const handleBackSemesterChange = async e => {
@@ -123,10 +148,10 @@ function StudentPage() {
     return (
         <div className="student-container">
             <div className="header">
-                <span className="welcome-text">Welcome Student</span>
+                <span className="welcome-text">Welcome, {auth.currentUser?.email}</span>
                 <button className="logout-button" onClick={logout}>Logout</button>
             </div>
-            <h2>Student Routine View</h2>
+            <h2>Dashboard</h2>
 
 
             <div className="row-group">
