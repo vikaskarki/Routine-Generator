@@ -53,7 +53,6 @@ const AdminPanel = () => {
                 where("batch", "==", batch)
             );
 
-
             const querySnapshot = await getDocs(q);
             const fetched = querySnapshot.docs.map(doc => ({
                 id: doc.id,
@@ -278,6 +277,8 @@ const AdminPanel = () => {
                 </ul>
             </div>
             <button className="generate-btn" > Generate Routine</button>
+
+
 
 
         </div >
