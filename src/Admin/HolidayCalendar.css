@@ -1,0 +1,138 @@
+.holiday-calendar-container {
+    max-width: 280px;
+    margin: 1.5rem auto;
+    padding: 1rem 1.2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+}
+
+.react-calendar__navigation {
+    background-color: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+    color: #333;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border-radius: 12px 12px 0 0;
+    display: flex;
+    justify-content: space-between;
+    padding: 0.3rem 0.6rem;
+}
+
+.react-calendar__navigation button {
+    color: #333;
+    font-weight: 600;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 0.15rem 0.3rem;
+    border-radius: 6px;
+    transition: background-color 0.25s ease;
+}
+
+.react-calendar__navigation button:enabled:hover,
+.react-calendar__navigation button:enabled:focus {
+    background-color: #e0e7ff;
+    outline: none;
+}
+
+.react-calendar__month-view__weekdays {
+    text-align: center;
+    text-transform: uppercase;
+    font-weight: 600;
+    font-size: 0.65rem;
+    color: #4b5563;
+    margin-bottom: 0.3rem;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 0.3rem;
+}
+
+.react-calendar__month-view__weekdays__weekday {
+    flex-grow: 1;
+    padding: 0.1rem 0;
+}
+
+.react-calendar__tile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    height: 30px;
+    line-height: 30px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin: 2px;
+    color: #1f2937;
+    transition: background-color 0.25s ease, color 0.25s ease;
+    position: relative;
+}
+
+.holiday {
+    background-color: #fee2e2 !important;
+    color: #b91c1c !important;
+    font-weight: 700 !important;
+}
+
+.react-calendar__tile--now {
+    background-color: #bfdbfe !important;
+    color: #1e40af !important;
+    font-weight: 600;
+}
+
+.react-calendar__tile--active {
+    background-color: #6f42c1 !important;
+    color: white !important;
+    box-shadow: 0 0 6px rgba(111, 66, 193, 0.6);
+    font-weight: 700;
+}
+
+.react-calendar__tile:hover {
+    background-color: #d6bcfa;
+    color: #4b0082;
+    cursor: pointer;
+}
+
+.holiday-action {
+    margin-top: 1rem;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #444;
+}
+
+.add-btn,
+.remove-btn {
+    margin-top: 0.4rem;
+    padding: 7px 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.85rem;
+    box-shadow: 0 3px 7px rgba(0, 0, 0, 0.08);
+    user-select: none;
+}
+
+.add-btn {
+    background-color: #2563eb;
+    color: white;
+    box-shadow: 0 3px 8px rgba(37, 99, 235, 0.4);
+}
+
+.add-btn:hover {
+    background-color: #1e40af;
+    box-shadow: 0 5px 10px rgba(30, 64, 175, 0.6);
+}
+
+.remove-btn {
+    background-color: #dc2626;
+    color: white;
+    box-shadow: 0 3px 8px rgba(220, 38, 38, 0.4);
+}
+
+.remove-btn:hover {
+    background-color: #991b1b;
+    box-shadow: 0 5px 10px rgba(153, 27, 27, 0.6);
+}

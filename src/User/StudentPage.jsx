@@ -240,9 +240,10 @@ function StudentPage() {
                 </div>
             </div>
 
-            <div className="generate-button">
+            <div className="generate-button-wrapper">
                 <button className="generate-button">Display Routine</button>
             </div>
+
 
         </div>
     );

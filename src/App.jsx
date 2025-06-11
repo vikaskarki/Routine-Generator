@@ -8,6 +8,7 @@ import TestFirestore from './TestFirestore';
 import StudentPage from "./User/StudentPage";
 import SignupPage from "./SignupPage";
 import AdminPanel from "./Admin/AdminPanel";
+import RoutineDisplay from './RoutineDisplay';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -57,6 +58,8 @@ function App() {
         <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/" />} />
 
         <Route path="/signup" element={!user ? <SignupPage /> : <Navigate to="/" />} />
+
+        <Route path="/routine" element={<RoutineDisplay />} />
 
         <Route path="/test" element={<TestFirestore />} />
 

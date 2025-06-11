@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import { getAuth, signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { db } from '../firebase';
-import { getDocs, query, where, addDoc } from "firebase/firestore";
-import { doc, updateDoc, deleteDoc, collection } from "firebase/firestore";
+import { getDocs, query, where, addDoc, doc, updateDoc, deleteDoc, collection } from "firebase/firestore";
 
 import './AdminPanel.css';
+import HolidayCalendar from './HolidayCalendar';
 
 const AdminPanel = () => {
     const [year, setYear] = useState("");
@@ -19,7 +19,8 @@ const AdminPanel = () => {
     const [editName, setEditName] = useState("");
     const [editCredit, setEditCredit] = useState("");
     const [batch, setBatch] = useState("");
-
+    const [showHolidayCalendar, setShowHolidayCalendar] = useState(false);
+    const [showRoutineOptions, setShowRoutineOptions] = useState(false);
 
     const navigate = useNavigate();
     const auth = getAuth();
@@ -67,8 +68,13 @@ const AdminPanel = () => {
 
     // Handle subject addition 
     const handleAddSubject = async () => {
-        if (!subjectName || !credit || !department || !year || !semester) {
+        if (!subjectName.trim() || !credit || !department || !year || !semester || !batch) {
             alert("Please fill all fields before adding a subject.");
+            return;
+        }
+
+        if (Number(credit) <= 0) {
+            alert("Credit must be a positive number.");
             return;
         }
 
@@ -276,9 +282,31 @@ const AdminPanel = () => {
                     ))}
                 </ul>
             </div>
-            <button className="generate-btn" > Generate Routine</button>
+
+            <div className="generate-btn-container">
+                <button className="generate-btn" onClick={() => setShowRoutineOptions(true)}>
+                    Generate Routine
+                </button>
+            </div>
 
 
+            {showRoutineOptions && (
+                <div className="routine-popup-overlay">
+                    <div className="routine-popup-card">
+                        <button className="routine-close-btn" onClick={() => setShowRoutineOptions(false)} > ❌ </button>
+                        <button onClick={() => setShowHolidayCalendar(true)}>Declare Holiday</button>
+                        <button onClick={() => navigate('/routine')}>Show Routine</button>                    </div>
+                </div>
+            )}
+
+            {showHolidayCalendar && (
+                <div className="holiday-overlay" onClick={() => setShowHolidayCalendar(false)}>
+                    <div className="holiday-content" onClick={e => e.stopPropagation()}>
+                        <button className="holiday-close-btn" onClick={() => setShowHolidayCalendar(false)} >✖</button>
+                        <HolidayCalendar />
+                    </div>
+                </div>
+            )}
 
 
         </div >
