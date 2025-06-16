@@ -2,23 +2,17 @@ import React, { useState, useEffect } from "react";
 import { getAuth, signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { db } from '../firebase';
-import { getDocs, query, where, addDoc, doc, updateDoc, deleteDoc, collection } from "firebase/firestore";
+import { getDocs, query, where, addDoc, doc, deleteDoc, collection } from "firebase/firestore";
 
 import './AdminPanel.css';
 import HolidayCalendar from './HolidayCalendar';
 
 const AdminPanel = () => {
-    const [year, setYear] = useState("");
-    const [semester, setSemester] = useState("");
     const [department, setDepartment] = useState("");
-    const [subjectName, setSubjectName] = useState("");
-    const [credit, setCredit] = useState("");
+    const [batch, setBatch] = useState("");
     const [adminEmail, setAdminEmail] = useState("");
     const [allSubjects, setAllSubjects] = useState([]);
-    const [editMode, setEditMode] = useState(null);
-    const [editName, setEditName] = useState("");
-    const [editCredit, setEditCredit] = useState("");
-    const [batch, setBatch] = useState("");
+    const [xmlFile, setXmlFile] = useState(null);
     const [showHolidayCalendar, setShowHolidayCalendar] = useState(false);
     const [showRoutineOptions, setShowRoutineOptions] = useState(false);
 
@@ -27,20 +21,17 @@ const AdminPanel = () => {
 
     // On component mount: get current user and fetch subjects
     useEffect(() => {
-        const auth = getAuth();
         const currentUser = auth.currentUser;
-
         if (currentUser) {
             setAdminEmail(currentUser.email);
         }
-
         fetchSubjects();
-    }, [department, year, semester, batch]);
+    }, [department, batch]);
 
 
 
     const fetchSubjects = async () => {
-        if (!department || !year || !semester || !batch) {
+        if (!department || !batch) {
             setAllSubjects([]);
             return;
         }
@@ -49,13 +40,10 @@ const AdminPanel = () => {
             const q = query(
                 collection(db, "subjects"),
                 where("department", "==", department),
-                where("year", "==", year),
-                where("semester", "==", semester),
                 where("batch", "==", batch)
             );
-
-            const querySnapshot = await getDocs(q);
-            const fetched = querySnapshot.docs.map(doc => ({
+            const snapshot = await getDocs(q);
+            const fetched = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             }));
@@ -65,101 +53,12 @@ const AdminPanel = () => {
         }
     };
 
-
-    // Handle subject addition 
-    const handleAddSubject = async () => {
-        if (!subjectName.trim() || !credit || !department || !year || !semester || !batch) {
-            alert("Please fill all fields before adding a subject.");
-            return;
-        }
-
-        if (Number(credit) <= 0) {
-            alert("Credit must be a positive number.");
-            return;
-        }
-
-        try {
-            // Check if subject already exists
-            const q = query(
-                collection(db, "subjects"),
-                where("subjectName", "==", subjectName),
-                where("department", "==", department),
-                where("year", "==", year),
-                where("semester", "==", semester),
-                where("batch", "==", batch)
-            );
-
-
-            const existing = await getDocs(q);
-
-            if (!existing.empty) {
-                alert("Subject already exists for the selected department, year, and semester.");
-                return;
-            }
-
-            // Add if not exists
-            const newSubject = {
-                subjectName,
-                credit: Number(credit),
-                department,
-                year,
-                semester,
-                batch,
-            };
-
-            await addDoc(collection(db, "subjects"), newSubject);
-
-            setSubjectName("");
-            setCredit("");
-            alert("Subject added successfully.");
-            fetchSubjects(); // refresh list
-        } catch (error) {
-            console.error("Error adding subject:", error);
-        }
-    };
-
     // Handle logout of current admin
     const handleLogout = async () => {
         await signOut(auth);
         navigate("/login");
     };
 
-    // Mapping year to its corresponding semesters
-    const yearSemesterMap = {
-        "1st Year": ["1st Semester", "2nd Semester"],
-        "2nd Year": ["3rd Semester", "4th Semester"],
-        "3rd Year": ["5th Semester", "6th Semester"],
-        "4th Year": ["7th Semester", "8th Semester"],
-    };
-
-    //for editing the subjects 
-    const handleEdit = (subj) => {
-        setEditMode(subj.id);
-        setEditName(subj.subjectName);
-        setEditCredit(subj.credit);
-    };
-
-    // firestore ma rw admin panel ma subject update hunxa
-    const handleUpdate = async (id) => {
-        try {
-            const subjectRef = doc(db, "subjects", id);
-            await updateDoc(subjectRef, {
-                subjectName: editName,
-                credit: Number(editCredit),
-            });
-
-            const updated = allSubjects.map((subj) =>
-                subj.id === id ? { ...subj, subjectName: editName, credit: Number(editCredit) } : subj
-            );
-            setAllSubjects(updated);
-            setEditMode(null);
-            alert("Subject updated.");
-        } catch (error) {
-            console.error("Error updating subject:", error);
-        }
-    };
-
-    // Delete subject from Firestore and remove from UI
     const handleDelete = async (id) => {
         try {
             await deleteDoc(doc(db, "subjects", id));
@@ -170,6 +69,104 @@ const AdminPanel = () => {
         }
     };
 
+    const handleXMLUpload = async (file) => {
+        if (!department || !batch) {
+            alert("Please select both Department and Batch before uploading.");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(e.target.result, "text/xml");
+            const tables = Array.from(xmlDoc.getElementsByTagName("table:table"));
+
+            const semesterLabels = [
+                "1st Semester", "2nd Semester",
+                "3rd Semester", "4th Semester",
+                "5th Semester", "6th Semester",
+                "7th Semester", "8th Semester"
+            ];
+
+            try {
+                for (let semIndex = 0; semIndex < tables.length; semIndex++) {
+                    const table = tables[semIndex];
+                    const semester1 = semesterLabels[semIndex * 2];
+                    const semester2 = semesterLabels[semIndex * 2 + 1];
+
+                    const rows = table.getElementsByTagName("table:table-row");
+
+                    for (let i = 2; i < rows.length; i++) {
+                        const cells = rows[i].getElementsByTagName("table:table-cell");
+
+                        const name1 = cells[1]?.textContent.trim();
+                        const credit1 = cells[2]?.textContent.trim();
+                        const name2 = cells[5]?.textContent.trim();
+                        const credit2 = cells[6]?.textContent.trim();
+
+                        // ✅ Subject 1
+                        if (name1 && credit1) {
+                            const query1 = query(
+                                collection(db, "subjects"),
+                                where("subjectName", "==", name1),
+                                where("department", "==", department),
+                                where("batch", "==", batch),
+                                where("semester", "==", semester1)
+                            );
+                            const exists1 = await getDocs(query1);
+                            if (exists1.empty) {
+                                await addDoc(collection(db, "subjects"), {
+                                    subjectName: name1,
+                                    credit: Number(credit1),
+                                    department,
+                                    batch,
+                                    semester: semester1,
+                                    year: getYearFromSemester(semester1),
+                                });
+                            }
+                        }
+
+                        // ✅ Subject 2
+                        if (name2 && credit2) {
+                            const query2 = query(
+                                collection(db, "subjects"),
+                                where("subjectName", "==", name2),
+                                where("department", "==", department),
+                                where("batch", "==", batch),
+                                where("semester", "==", semester2)
+                            );
+                            const exists2 = await getDocs(query2);
+                            if (exists2.empty) {
+                                await addDoc(collection(db, "subjects"), {
+                                    subjectName: name2,
+                                    credit: Number(credit2),
+                                    department,
+                                    batch,
+                                    semester: semester2,
+                                    year: getYearFromSemester(semester2),
+                                });
+                            }
+                        }
+                    }
+                }
+                alert(`Subjects uploaded to: ${department} (${batch} Batch)`);
+                setXmlFile(null);
+                fetchSubjects();
+            } catch (err) {
+                console.error("Error importing XML:", err);
+                alert("Error importing subjects.");
+            }
+        };
+        reader.readAsText(file);
+    };
+
+    const getYearFromSemester = (semester) => {
+        if (semester.includes("1st") || semester.includes("2nd")) return "1st Year";
+        if (semester.includes("3rd") || semester.includes("4th")) return "2nd Year";
+        if (semester.includes("5th") || semester.includes("6th")) return "3rd Year";
+        if (semester.includes("7th") || semester.includes("8th")) return "4th Year";
+        return "";
+    };
 
 
     return (
@@ -184,103 +181,87 @@ const AdminPanel = () => {
                 </div>
             </div>
 
-            {/* Year Selection */}
             <div className="admin-panel-content">
                 <div className="admin-form-section">
+                    <h3>Enter Subjects list to Database:- </h3>
+                    <hr></hr>
                     <label>Department:</label>
                     <select value={department} onChange={(e) => setDepartment(e.target.value)}>
                         <option value="">Select Department</option>
-                        <option value="Computer">Computer</option>
-                        <option value="Civil">Civil</option>
-                        <option value="IT">IT</option>
+                        <option value="BE Computer">BE Computer</option>
+                        <option value="BE IT">BE IT</option>
+                        <option value="BE Civil">BE Civil</option>
                     </select>
 
                     <label>Batch:</label>
                     <select value={batch} onChange={(e) => setBatch(e.target.value)}>
                         <option value="">Select Batch</option>
-                        <option value="New">New </option>
-                        <option value="Old">Old </option>
-                    </select>
-
-                    <label>Year:</label>
-                    <select value={year} onChange={(e) => {
-                        setYear(e.target.value);
-                        setSemester("");
-                    }}>
-                        <option value="">Select Year</option>
-                        {Object.keys(yearSemesterMap).map((yr) => (
-                            <option key={yr} value={yr}>{yr}</option>
-                        ))}
+                        <option value="New">New</option>
+                        <option value="Old">Old</option>
                     </select>
                 </div>
-
-                {/* yo block lae if year select gareko xa vani semester select garnu milxa */}
-                {year && (
-                    <div className="admin-panel-content">
-                        <label>Semester:</label>
-                        <select value={semester} onChange={(e) => setSemester(e.target.value)}>
-                            <option value="">Select Semester</option>
-                            {yearSemesterMap[year].map((sem) => (
-                                <option key={sem} value={sem}>{sem}</option>
-                            ))}
-                        </select>
-                    </div>
-                )}
 
                 <hr />
-
-                <h3>Add Subject</h3>
+                <h3>Import Subjects via XML</h3>
                 <div className="subject-form">
                     <input
-                        type="text"
-                        placeholder="Subject Name"
-                        value={subjectName}
-                        onChange={(e) => setSubjectName(e.target.value)}
+                        type="file"
+                        accept=".xml"
+                        onChange={(e) => setXmlFile(e.target.files[0])}
                     />
-                    <input
-                        type="number"
-                        placeholder="Credit"
-                        value={credit}
-                        onChange={(e) => setCredit(e.target.value)}
-                    />
-                    <button onClick={handleAddSubject}>Add Subject</button>
+                    {xmlFile && (
+                        <button onClick={() => handleXMLUpload(xmlFile)}>Proceed</button>
+                    )}
                 </div>
+
             </div>
 
             <div className="subject-list-section">
-                <h3>Subjects List</h3>
-                <ul className="subject-list">
-                    {allSubjects.map((subj) => (
-                        <li key={subj.id}>
-                            {editMode === subj.id ? (
-                                <>
-                                    <input
-                                        value={editName}
-                                        onChange={(e) => setEditName(e.target.value)}
-                                    />
-                                    <input
-                                        type="number"
-                                        value={editCredit}
-                                        onChange={(e) => setEditCredit(e.target.value)}
-                                    />
-                                    <div className="subject-buttons">
-                                        <button className="save-btn" onClick={() => handleUpdate(subj.id)}>✅ Save</button>
-                                        <button className="cancel-btn" onClick={() => setEditMode(null)}>❌ Cancel</button>
-                                    </div>
-                                </>
-                            ) : (
-                                <>
-                                    <span>{subj.subjectName} - {subj.credit} credit(s)</span>
-                                    <div className="subject-buttons">
-                                        <button className="edit-btn" onClick={() => handleEdit(subj)}>✏️ Edit</button>
-                                        <button className="delete-btn" onClick={() => handleDelete(subj.id)}>🗑️ Delete</button>
-                                    </div>
-                                </>
+                {department && batch && (
+                    <>
+                        <h3>Subjects List</h3>
+                        <div className="semester-grid">
+                            {[
+                                ["1st Semester", "2nd Semester"],
+                                ["3rd Semester", "4th Semester"],
+                                ["5th Semester", "6th Semester"],
+                                ["7th Semester", "8th Semester"],
+                            ].map(([leftSem, rightSem], index) => {
+                                const leftSubjects = allSubjects.filter(s => s.semester === leftSem);
+                                const rightSubjects = allSubjects.filter(s => s.semester === rightSem);
 
-                            )}
-                        </li>
-                    ))}
-                </ul>
+                                return (
+                                    <div className="semester-row" key={index}>
+                                        <div className="semester-column">
+                                            <h4>{leftSem}</h4>
+                                            <ul className="subject-list">
+                                                {leftSubjects.map((subj) => (
+                                                    <li key={subj.id}>
+                                                        <span>{subj.subjectName} - {subj.credit} credit(s)</span>
+                                                        <button className="delete-btn" onClick={() => handleDelete(subj.id)}>🗑️</button>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                        <div className="semester-column">
+                                            <h4>{rightSem}</h4>
+                                            <ul className="subject-list">
+                                                {rightSubjects.map((subj) => (
+                                                    <li key={subj.id}>
+                                                        <span>{subj.subjectName} - {subj.credit} credit(s)</span>
+                                                        <button className="delete-btn" onClick={() => handleDelete(subj.id)}>🗑️</button>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </>
+                )}
+
+
             </div>
 
             <div className="generate-btn-container">
@@ -289,27 +270,25 @@ const AdminPanel = () => {
                 </button>
             </div>
 
-
             {showRoutineOptions && (
                 <div className="routine-popup-overlay">
                     <div className="routine-popup-card">
-                        <button className="routine-close-btn" onClick={() => setShowRoutineOptions(false)} > ❌ </button>
+                        <button className="routine-close-btn" onClick={() => setShowRoutineOptions(false)}>❌</button>
                         <button onClick={() => setShowHolidayCalendar(true)}>Declare Holiday</button>
-                        <button onClick={() => navigate('/routine')}>Show Routine</button>                    </div>
+                        <button onClick={() => navigate('/routine')}>Show Routine</button>
+                    </div>
                 </div>
             )}
 
             {showHolidayCalendar && (
                 <div className="holiday-overlay" onClick={() => setShowHolidayCalendar(false)}>
                     <div className="holiday-content" onClick={e => e.stopPropagation()}>
-                        <button className="holiday-close-btn" onClick={() => setShowHolidayCalendar(false)} >✖</button>
+                        <button className="holiday-close-btn" onClick={() => setShowHolidayCalendar(false)}>✖</button>
                         <HolidayCalendar />
                     </div>
                 </div>
             )}
-
-
-        </div >
+        </div>
     );
 };
 

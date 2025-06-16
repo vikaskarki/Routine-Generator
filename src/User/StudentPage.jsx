@@ -38,8 +38,12 @@ function StudentPage() {
                         where('semester', '==', semester)
                     );
                     const querySnapshot = await getDocs(q);
-                    const fetchedSubjects = querySnapshot.docs.map(doc => doc.data().subjectName);
+
+                    const fetchedSubjects = [
+                        ...new Set(querySnapshot.docs.map(doc => doc.data().subjectName))
+                    ];
                     setRegularSubjects(fetchedSubjects);
+
                 } catch (error) {
                     console.error('Error fetching regular subjects:', error);
                 }
@@ -110,7 +114,9 @@ function StudentPage() {
             where("semester", "==", semPart)
         );
         const snapshot = await getDocs(q);
-        const subjects = snapshot.docs.map(doc => doc.data().subjectName);
+        const subjects = [
+            ...new Set(snapshot.docs.map(doc => doc.data().subjectName))
+        ];
         setAvailableBackSubjects(subjects);
     };
 
@@ -156,20 +162,20 @@ function StudentPage() {
 
             <div className="row-group">
                 <div className="form-group half-width">
+                    <label>Department</label>
+                    <select value={department} onChange={e => setDepartment(e.target.value)}>
+                        <option value="">Select Department</option>
+                        <option value="BE Computer">BE Computer</option>
+                        <option value="BE Civil">BE Civil</option>
+                        <option value="BE IT">BE IT</option>
+                    </select>
+                </div>
+                <div className="form-group half-width">
                     <label>Batch</label>
                     <select value={batch} onChange={e => setBatch(e.target.value)}>
                         <option value="">Select Batch</option>
                         <option value="New">New</option>
                         <option value="Old">Old</option>
-                    </select>
-                </div>
-                <div className="form-group half-width">
-                    <label>Department</label>
-                    <select value={department} onChange={e => setDepartment(e.target.value)}>
-                        <option value="">Select Department</option>
-                        <option value="Computer">Computer</option>
-                        <option value="Civil">Civil</option>
-                        <option value="IT">IT</option>
                     </select>
                 </div>
             </div>

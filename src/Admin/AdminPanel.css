@@ -30,14 +30,14 @@ body {
 }
 
 .admin-panel-header h2 {
-    font-size: 26px;
+    font-size: 25px;
     color: #333;
 }
 
 .admin-panel-user-info {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 50px;
     font-size: 14px;
     color: black;
 }
@@ -61,24 +61,25 @@ body {
 }
 
 /* Section styling */
-.admin-panel-section {
+.admin-form-section {
     margin-bottom: 25px;
 }
 
-.admin-panel-section label {
+.admin-form-section label {
     display: block;
     margin-bottom: 6px;
     font-weight: 600;
     color: #555;
 }
 
-.admin-panel-section select {
+.admin-form-section select {
     width: 100%;
     padding: 10px;
     border-radius: 6px;
     border: 1px solid #ccc;
     background: #f9f9f9;
     font-size: 16px;
+    margin-bottom: 15px;
 }
 
 /* Subject form */
@@ -93,6 +94,7 @@ h3 {
     gap: 12px;
     flex-wrap: wrap;
     margin-top: 10px;
+    margin-bottom: 30px;
 }
 
 .subject-form input {
@@ -118,63 +120,70 @@ h3 {
     background-color: #444;
 }
 
-/* Subject list */
-.subject-list {
-    margin-top: 15px;
-    padding-left: 20px;
+/* Semester Grid Layout */
+.semester-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.semester-row {
+    display: flex;
+    gap: 20px;
+    justify-content: space-between;
+}
+
+.semester-column {
+    flex: 1;
+    background-color: #f9f9f9;
+    padding: 15px 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    min-height: 100px;
+}
+
+.semester-column h4 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #222;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+}
+
+.semester-column .subject-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    margin-top: 10px;
+    padding-left: 15px;
     color: #333;
 }
 
-.subject-list li {
+.semester-column .subject-list li {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
-    font-size: 15px;
-    padding-right: 10px;
+    padding: 6px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
 }
 
-.subject-buttons {
-    display: flex;
-    gap: 8px;
-    min-width: 120px;
-}
-
-/* Action buttons */
-.edit-btn {
-    background-color: #007bff;
-    color: white;
-}
-
-.edit-btn:hover {
-    background-color: #0056b3;
-}
-
-.delete-btn {
+/* Delete button */
+.semester-column .delete-btn {
     background-color: #dc3545;
+    border: none;
     color: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
 }
 
-.delete-btn:hover {
+.semester-column .delete-btn:hover {
     background-color: #b02a37;
-}
-
-.save-btn {
-    background-color: #28a745;
-    color: white;
-}
-
-.save-btn:hover {
-    background-color: #218838;
-}
-
-.cancel-btn {
-    background-color: #6c757d;
-    color: white;
-}
-
-.cancel-btn:hover {
-    background-color: #5a6268;
 }
 
 .generate-btn-container {
@@ -202,6 +211,7 @@ h3 {
 }
 
 
+/* Routine popup */
 .routine-popup-overlay {
     position: fixed;
     top: 0;
@@ -230,37 +240,40 @@ h3 {
 
 .routine-close-btn {
     position: absolute;
-    top: 12px;
-    right: 12px;
+    top: 10px;
+    right: 10px;
     background: transparent;
     border: none;
     font-size: 20px;
     cursor: pointer;
     color: #888;
-    transition: color 0.2s ease;
+    padding: 5px;
+    line-height: 1;
 }
 
 .routine-close-btn:hover {
     color: #333;
+    background: #f0f0f0;
+    border-radius: 50%;
 }
 
 .routine-popup-card button:not(.routine-close-btn) {
     padding: 10px 20px;
-    background-color: #007bff;
+    background-color: #b300ff;
     border: none;
     border-radius: 8px;
     color: white;
     font-size: 16px;
     cursor: pointer;
     transition: background-color 0.2s ease;
+    width: 100%;
 }
 
 .routine-popup-card button:not(.routine-close-btn):hover {
     background-color: #0056b3;
 }
 
-
-
+/* Holiday calendar */
 .holiday-overlay {
     position: fixed;
     top: 0;
