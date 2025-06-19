@@ -5,7 +5,7 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 
 import LoginPage from './LoginPage';
 import TestFirestore from './TestFirestore';
-import StudentPage from "./User/StudentPage";
+import HomePage from "./User/HomePage";
 import SignupPage from "./SignupPage";
 import AdminPanel from "./Admin/AdminPanel";
 import RoutineDisplay from './RoutineDisplay';
@@ -51,7 +51,7 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={user ? (role === "admin" ? <Navigate to="/admin" /> : <StudentPage />) : <Navigate to="/login" />} />
+        <Route path="/" element={user ? (role === "admin" ? <Navigate to="/admin" /> : <HomePage />) : <Navigate to="/login" />} />
 
         <Route path="/admin" element={user && role === "admin" ? <AdminPanel /> : <Navigate to="/" />} />
 

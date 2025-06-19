@@ -3,9 +3,9 @@ import { auth, db } from '../firebase';
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 
-import "./StudentPage.css";
+import "./HomePage.css";
 
-function StudentPage() {
+function HomePage() {
     const [batch, setBatch] = useState("");
     const [department, setDepartment] = useState("");
     const [year, setYear] = useState("");
@@ -255,4 +255,4 @@ function StudentPage() {
     );
 }
 
-export default StudentPage;
+export default HomePage;
