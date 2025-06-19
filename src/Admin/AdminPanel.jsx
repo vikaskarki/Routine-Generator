@@ -13,6 +13,7 @@ const AdminPanel = () => {
     const [adminEmail, setAdminEmail] = useState("");
     const [allSubjects, setAllSubjects] = useState([]);
     const [xmlFile, setXmlFile] = useState(null);
+    const [loading, setLoading] = useState(false);
     const [showHolidayCalendar, setShowHolidayCalendar] = useState(false);
     const [showRoutineOptions, setShowRoutineOptions] = useState(false);
 
@@ -77,10 +78,18 @@ const AdminPanel = () => {
 
         const reader = new FileReader();
         reader.onload = async (e) => {
+            setLoading(true);
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(e.target.result, "text/xml");
-            const tables = Array.from(xmlDoc.getElementsByTagName("table:table"));
 
+            const parserError = xmlDoc.getElementsByTagName("parsererror");
+            if (parserError.length > 0) {
+                alert("The uploaded file is not a valid XML format.");
+                setLoading(false);
+                return;
+            }
+
+            const tables = Array.from(xmlDoc.getElementsByTagName("table:table"));
             const semesterLabels = [
                 "1st Semester", "2nd Semester",
                 "3rd Semester", "4th Semester",
@@ -89,6 +98,18 @@ const AdminPanel = () => {
             ];
 
             try {
+                // ✅ Fetch all existing subjects once
+                const existingSnapshot = await getDocs(query(
+                    collection(db, "subjects"),
+                    where("department", "==", department),
+                    where("batch", "==", batch)
+                ));
+                const existingSubjectsSet = new Set(
+                    existingSnapshot.docs.map(doc =>
+                        doc.data().subjectName + "|" + doc.data().semester
+                    )
+                );
+
                 for (let semIndex = 0; semIndex < tables.length; semIndex++) {
                     const table = tables[semIndex];
                     const semester1 = semesterLabels[semIndex * 2];
@@ -104,59 +125,41 @@ const AdminPanel = () => {
                         const name2 = cells[5]?.textContent.trim();
                         const credit2 = cells[6]?.textContent.trim();
 
-                        // ✅ Subject 1
-                        if (name1 && credit1) {
-                            const query1 = query(
-                                collection(db, "subjects"),
-                                where("subjectName", "==", name1),
-                                where("department", "==", department),
-                                where("batch", "==", batch),
-                                where("semester", "==", semester1)
-                            );
-                            const exists1 = await getDocs(query1);
-                            if (exists1.empty) {
-                                await addDoc(collection(db, "subjects"), {
-                                    subjectName: name1,
-                                    credit: Number(credit1),
-                                    department,
-                                    batch,
-                                    semester: semester1,
-                                    year: getYearFromSemester(semester1),
-                                });
-                            }
+                        if (name1 && credit1 && !existingSubjectsSet.has(name1 + "|" + semester1)) {
+                            await addDoc(collection(db, "subjects"), {
+                                subjectName: name1,
+                                credit: Number(credit1),
+                                department,
+                                batch,
+                                semester: semester1,
+                                year: getYearFromSemester(semester1),
+                            });
                         }
 
-                        // ✅ Subject 2
-                        if (name2 && credit2) {
-                            const query2 = query(
-                                collection(db, "subjects"),
-                                where("subjectName", "==", name2),
-                                where("department", "==", department),
-                                where("batch", "==", batch),
-                                where("semester", "==", semester2)
-                            );
-                            const exists2 = await getDocs(query2);
-                            if (exists2.empty) {
-                                await addDoc(collection(db, "subjects"), {
-                                    subjectName: name2,
-                                    credit: Number(credit2),
-                                    department,
-                                    batch,
-                                    semester: semester2,
-                                    year: getYearFromSemester(semester2),
-                                });
-                            }
+                        if (name2 && credit2 && !existingSubjectsSet.has(name2 + "|" + semester2)) {
+                            await addDoc(collection(db, "subjects"), {
+                                subjectName: name2,
+                                credit: Number(credit2),
+                                department,
+                                batch,
+                                semester: semester2,
+                                year: getYearFromSemester(semester2),
+                            });
                         }
                     }
                 }
+
                 alert(`Subjects uploaded to: ${department} (${batch} Batch)`);
                 setXmlFile(null);
                 fetchSubjects();
             } catch (err) {
                 console.error("Error importing XML:", err);
                 alert("Error importing subjects.");
+            } finally {
+                setLoading(false);
             }
         };
+
         reader.readAsText(file);
     };
 
@@ -167,7 +170,6 @@ const AdminPanel = () => {
         if (semester.includes("7th") || semester.includes("8th")) return "4th Year";
         return "";
     };
-
 
     return (
         // --------------------- Admin Panel ---------------------
@@ -209,9 +211,14 @@ const AdminPanel = () => {
                         accept=".xml"
                         onChange={(e) => setXmlFile(e.target.files[0])}
                     />
-                    {xmlFile && (
-                        <button onClick={() => handleXMLUpload(xmlFile)}>Proceed</button>
+                    {loading ? (
+                        <p className="uploading-message">Uploading subjects... Please wait ⏳</p>
+                    ) : (
+                        xmlFile && (
+                            <button className="upload-proceed-btn" onClick={() => handleXMLUpload(xmlFile)} >Proceed </button>
+                        )
                     )}
+
                 </div>
 
             </div>

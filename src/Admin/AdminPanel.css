@@ -317,3 +317,27 @@ h3 {
     background: #f0f0f0;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
 }
+
+/* Loading message */
+.uploading-message {
+    font-size: 16px;
+    color: #007bff;
+    font-weight: 500;
+    margin-top: 10px;
+}
+
+/* Proceed button */
+.upload-proceed-btn {
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 10px;
+}
+
+.upload-proceed-btn:hover {
+    background-color: #0056b3;
+}
