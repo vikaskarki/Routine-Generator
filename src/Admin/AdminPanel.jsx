@@ -1,8 +1,9 @@
+// AdminPanel.jsx
 import React, { useState, useEffect } from "react";
 import { getAuth, signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { db } from '../firebase';
-import { getDocs, query, where, addDoc, doc, deleteDoc, collection } from "firebase/firestore";
+import { getDocs, addDoc, doc, deleteDoc, collection } from "firebase/firestore";
 
 import './AdminPanel.css';
 import HolidayCalendar from './HolidayCalendar';
@@ -20,7 +21,6 @@ const AdminPanel = () => {
     const navigate = useNavigate();
     const auth = getAuth();
 
-    // On component mount: get current user and fetch subjects
     useEffect(() => {
         const currentUser = auth.currentUser;
         if (currentUser) {
@@ -29,40 +29,58 @@ const AdminPanel = () => {
         fetchSubjects();
     }, [department, batch]);
 
-
+    const semesterLabels = [
+        "1st Semester", "2nd Semester",
+        "3rd Semester", "4th Semester",
+        "5th Semester", "6th Semester",
+        "7th Semester", "8th Semester"
+    ];
 
     const fetchSubjects = async () => {
         if (!department || !batch) {
             setAllSubjects([]);
             return;
         }
-
         try {
-            const q = query(
-                collection(db, "subjects"),
-                where("department", "==", department),
-                where("batch", "==", batch)
-            );
-            const snapshot = await getDocs(q);
-            const fetched = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
+            let fetched = [];
+            for (const semester of semesterLabels) {
+                const subjectsRef = collection(
+                    db,
+                    "departments", department,
+                    "batches", batch,
+                    "semesters", semester,
+                    "subjects"
+                );
+
+                const snapshot = await getDocs(subjectsRef);
+                snapshot.forEach(docSnap => {
+                    fetched.push({
+                        id: docSnap.id,
+                        semester,
+                        ...docSnap.data(),
+                    });
+                });
+            }
             setAllSubjects(fetched);
         } catch (error) {
             console.error("Error fetching subjects:", error);
         }
     };
 
-    // Handle logout of current admin
     const handleLogout = async () => {
         await signOut(auth);
         navigate("/login");
     };
 
-    const handleDelete = async (id) => {
+    const handleDelete = async (id, semester) => {
         try {
-            await deleteDoc(doc(db, "subjects", id));
+            await deleteDoc(doc(
+                db,
+                "departments", department,
+                "batches", batch,
+                "semesters", semester,
+                "subjects", id
+            ));
             setAllSubjects(allSubjects.filter((subj) => subj.id !== id));
             alert("Subject deleted.");
         } catch (error) {
@@ -82,39 +100,35 @@ const AdminPanel = () => {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(e.target.result, "text/xml");
 
-            const parserError = xmlDoc.getElementsByTagName("parsererror");
-            if (parserError.length > 0) {
-                alert("The uploaded file is not a valid XML format.");
+            if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
+                alert("Invalid XML format.");
                 setLoading(false);
                 return;
             }
 
             const tables = Array.from(xmlDoc.getElementsByTagName("table:table"));
-            const semesterLabels = [
-                "1st Semester", "2nd Semester",
-                "3rd Semester", "4th Semester",
-                "5th Semester", "6th Semester",
-                "7th Semester", "8th Semester"
-            ];
 
             try {
-                // ✅ Fetch all existing subjects once
-                const existingSnapshot = await getDocs(query(
-                    collection(db, "subjects"),
-                    where("department", "==", department),
-                    where("batch", "==", batch)
-                ));
-                const existingSubjectsSet = new Set(
-                    existingSnapshot.docs.map(doc =>
-                        doc.data().subjectName + "|" + doc.data().semester
-                    )
-                );
+                const existingSubjectsSet = new Set();
+
+                for (const sem of semesterLabels) {
+                    const semRef = collection(
+                        db,
+                        "departments", department,
+                        "batches", batch,
+                        "semesters", sem,
+                        "subjects"
+                    );
+                    const snapshot = await getDocs(semRef);
+                    snapshot.forEach(doc => {
+                        existingSubjectsSet.add(doc.data().subjectName + "|" + sem);
+                    });
+                }
 
                 for (let semIndex = 0; semIndex < tables.length; semIndex++) {
                     const table = tables[semIndex];
                     const semester1 = semesterLabels[semIndex * 2];
                     const semester2 = semesterLabels[semIndex * 2 + 1];
-
                     const rows = table.getElementsByTagName("table:table-row");
 
                     for (let i = 2; i < rows.length; i++) {
@@ -126,24 +140,30 @@ const AdminPanel = () => {
                         const credit2 = cells[6]?.textContent.trim();
 
                         if (name1 && credit1 && !existingSubjectsSet.has(name1 + "|" + semester1)) {
-                            await addDoc(collection(db, "subjects"), {
+                            await addDoc(collection(
+                                db,
+                                "departments", department,
+                                "batches", batch,
+                                "semesters", semester1,
+                                "subjects"
+                            ), {
                                 subjectName: name1,
                                 credit: Number(credit1),
-                                department,
-                                batch,
-                                semester: semester1,
-                                year: getYearFromSemester(semester1),
+                                year: getYearFromSemester(semester1)
                             });
                         }
 
                         if (name2 && credit2 && !existingSubjectsSet.has(name2 + "|" + semester2)) {
-                            await addDoc(collection(db, "subjects"), {
+                            await addDoc(collection(
+                                db,
+                                "departments", department,
+                                "batches", batch,
+                                "semesters", semester2,
+                                "subjects"
+                            ), {
                                 subjectName: name2,
                                 credit: Number(credit2),
-                                department,
-                                batch,
-                                semester: semester2,
-                                year: getYearFromSemester(semester2),
+                                year: getYearFromSemester(semester2)
                             });
                         }
                     }
@@ -172,8 +192,6 @@ const AdminPanel = () => {
     };
 
     return (
-        // --------------------- Admin Panel ---------------------
-
         <div className="admin-panel-container">
             <div className="admin-panel-header">
                 <h2>🛠 Admin Panel</h2>
@@ -185,8 +203,7 @@ const AdminPanel = () => {
 
             <div className="admin-panel-content">
                 <div className="admin-form-section">
-                    <h3>Enter Subjects list to Database:- </h3>
-                    <hr></hr>
+                    <h3>Enter Subjects list to Database:</h3>
                     <label>Department:</label>
                     <select value={department} onChange={(e) => setDepartment(e.target.value)}>
                         <option value="">Select Department</option>
@@ -205,22 +222,19 @@ const AdminPanel = () => {
 
                 <hr />
                 <h3>Import Subjects via XML</h3>
-                <div className="subject-form">
+                <div className="xml-upload-row">
                     <input
                         type="file"
                         accept=".xml"
                         onChange={(e) => setXmlFile(e.target.files[0])}
                     />
-                    {loading ? (
-                        <p className="uploading-message">Uploading subjects... Please wait ⏳</p>
-                    ) : (
-                        xmlFile && (
-                            <button className="upload-proceed-btn" onClick={() => handleXMLUpload(xmlFile)} >Proceed </button>
-                        )
+                    {xmlFile && !loading && (
+                        <button onClick={() => handleXMLUpload(xmlFile)} className="upload-proceed-btn">
+                            Proceed
+                        </button>
                     )}
-
+                    {loading && <span className="uploading-message">Uploading... ⏳</span>}
                 </div>
-
             </div>
 
             <div className="subject-list-section">
@@ -233,42 +247,29 @@ const AdminPanel = () => {
                                 ["3rd Semester", "4th Semester"],
                                 ["5th Semester", "6th Semester"],
                                 ["7th Semester", "8th Semester"],
-                            ].map(([leftSem, rightSem], index) => {
-                                const leftSubjects = allSubjects.filter(s => s.semester === leftSem);
-                                const rightSubjects = allSubjects.filter(s => s.semester === rightSem);
-
-                                return (
-                                    <div className="semester-row" key={index}>
-                                        <div className="semester-column">
-                                            <h4>{leftSem}</h4>
-                                            <ul className="subject-list">
-                                                {leftSubjects.map((subj) => (
-                                                    <li key={subj.id}>
-                                                        <span>{subj.subjectName} - {subj.credit} credit(s)</span>
-                                                        <button className="delete-btn" onClick={() => handleDelete(subj.id)}>🗑️</button>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                        <div className="semester-column">
-                                            <h4>{rightSem}</h4>
-                                            <ul className="subject-list">
-                                                {rightSubjects.map((subj) => (
-                                                    <li key={subj.id}>
-                                                        <span>{subj.subjectName} - {subj.credit} credit(s)</span>
-                                                        <button className="delete-btn" onClick={() => handleDelete(subj.id)}>🗑️</button>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                            ].map(([leftSem, rightSem], index) => (
+                                <div className="semester-row" key={index}>
+                                    {[leftSem, rightSem].map((semester) => {
+                                        const subjects = allSubjects.filter(s => s.semester === semester);
+                                        return (
+                                            <div className="semester-column" key={semester}>
+                                                <h4>{semester}</h4>
+                                                <ul className="subject-list">
+                                                    {subjects.map((subj) => (
+                                                        <li key={subj.id}>
+                                                            <span>{subj.subjectName} - {subj.credit} credit(s)</span>
+                                                            <button onClick={() => handleDelete(subj.id, subj.semester)}>🗑️</button>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ))}
                         </div>
                     </>
                 )}
-
-
             </div>
 
             <div className="generate-btn-container">
