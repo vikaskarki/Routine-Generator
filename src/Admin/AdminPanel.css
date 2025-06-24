@@ -42,28 +42,12 @@ body {
     color: black;
 }
 
-.admin-panel-user-info strong {
-    color: black;
-}
-
-.logout-button {
-    padding: 6px 14px;
-    background-color: #e63946;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.3s;
-}
 
 .logout-button:hover {
     background-color: #c82333;
 }
 
-/* Section styling */
-.admin-form-section {
-    margin-bottom: 25px;
-}
+
 
 .admin-form-section label {
     display: block;
@@ -72,15 +56,7 @@ body {
     color: #555;
 }
 
-.admin-form-section select {
-    width: 100%;
-    padding: 10px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    background: #f9f9f9;
-    font-size: 16px;
-    margin-bottom: 15px;
-}
+
 
 /* Subject form */
 h3 {
@@ -89,36 +65,6 @@ h3 {
     font-weight: 600;
 }
 
-.subject-form {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-top: 10px;
-    margin-bottom: 30px;
-}
-
-.subject-form input {
-    flex: 1;
-    padding: 10px;
-    font-size: 15px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-}
-
-.subject-form button {
-    padding: 10px 18px;
-    font-size: 15px;
-    background-color: #111;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.3s;
-}
-
-.subject-form button:hover {
-    background-color: #444;
-}
 
 /* Semester Grid Layout */
 .semester-grid {
@@ -171,20 +117,7 @@ h3 {
     font-size: 14px;
 }
 
-/* Delete button */
-.semester-column .delete-btn {
-    background-color: #dc3545;
-    border: none;
-    color: white;
-    padding: 3px 8px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-}
 
-.semester-column .delete-btn:hover {
-    background-color: #b02a37;
-}
 
 .generate-btn-container {
     display: flex;
@@ -318,29 +251,31 @@ h3 {
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
 }
 
-.routine-display-card {
-    margin-top: 2rem;
-    background: #fff;
-    padding: 1.5rem;
-    border-radius: 12px;
-    box-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
-    max-height: 300px;
-    overflow-y: auto;
+.subject-upload-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
 }
 
-.routine-list {
-    list-style: none;
-    padding: 0;
-}
-
-.routine-list li {
-    margin-bottom: 10px;
+.subject-upload-row input[type="file"] {
+    flex: 1;
     padding: 8px;
-    border-bottom: 1px solid #eee;
+    font-size: 15px;
 }
 
-.routine-display-card>div {
-    margin-bottom: 8px;
-    border-bottom: 1px solid #ddd;
-    padding-bottom: 6px;
+.upload-proceed-btn {
+    padding: 10px 18px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.upload-proceed-btn:hover {
+    background-color: #0056b3;
 }

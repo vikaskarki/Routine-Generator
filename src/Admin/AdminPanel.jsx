@@ -222,14 +222,14 @@ const AdminPanel = () => {
 
                 <hr />
                 <h3>Import Subjects via XML</h3>
-                <div className="xml-upload-row">
+                <div className="subject-upload-row">
                     <input
                         type="file"
                         accept=".xml"
                         onChange={(e) => setXmlFile(e.target.files[0])}
                     />
                     {xmlFile && !loading && (
-                        <button onClick={() => handleXMLUpload(xmlFile)} className="upload-proceed-btn">
+                        <button className="upload-proceed-btn" onClick={() => handleXMLUpload(xmlFile)}>
                             Proceed
                         </button>
                     )}
