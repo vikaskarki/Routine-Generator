@@ -6,7 +6,8 @@ import { db } from '../firebase';
 import { getDocs, addDoc, doc, deleteDoc, collection } from "firebase/firestore";
 
 import './AdminPanel.css';
-import HolidayCalendar from './HolidayCalendar';
+import RoutineSetupModal from './RoutineSetupModal'; // Add at top
+
 
 const AdminPanel = () => {
     const [department, setDepartment] = useState("");
@@ -15,8 +16,7 @@ const AdminPanel = () => {
     const [allSubjects, setAllSubjects] = useState([]);
     const [xmlFile, setXmlFile] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [showHolidayCalendar, setShowHolidayCalendar] = useState(false);
-    const [showRoutineOptions, setShowRoutineOptions] = useState(false);
+    const [showRoutineSetup, setShowRoutineSetup] = useState(false);
 
     const navigate = useNavigate();
     const auth = getAuth();
@@ -73,6 +73,8 @@ const AdminPanel = () => {
     };
 
     const handleDelete = async (id, semester) => {
+        const confirmDelete = window.confirm("Are you sure you want to delete this subject?");
+        if (!confirmDelete) return;
         try {
             await deleteDoc(doc(
                 db,
@@ -84,7 +86,7 @@ const AdminPanel = () => {
             setAllSubjects(allSubjects.filter((subj) => subj.id !== id));
             alert("Subject deleted.");
         } catch (error) {
-            console.error("Error deleting subject:", error);
+            console.error("Failed to delete Subjects:", error);
         }
     };
 
@@ -190,6 +192,21 @@ const AdminPanel = () => {
         if (semester.includes("7th") || semester.includes("8th")) return "4th Year";
         return "";
     };
+    const generateAndDownloadRoutine = async () => {
+        try {
+            const response = await fetch("/generateRoutine.txt");  // served from /public
+            const text = await response.text();
+            const blob = new Blob([text], { type: "text/plain" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `routine_${department}_${batch}.txt`;
+            link.click();
+        } catch (err) {
+            alert("Failed to download routine.");
+            console.error(err);
+        }
+    };
+
 
     return (
         <div className="admin-panel-container">
@@ -229,7 +246,10 @@ const AdminPanel = () => {
                         onChange={(e) => setXmlFile(e.target.files[0])}
                     />
                     {xmlFile && !loading && (
-                        <button className="upload-proceed-btn" onClick={() => handleXMLUpload(xmlFile)}>
+                        <button
+                            className="upload-proceed-btn" onClick={() => handleXMLUpload(xmlFile)}
+                            disabled={loading}
+                        >
                             Proceed
                         </button>
                     )}
@@ -250,7 +270,10 @@ const AdminPanel = () => {
                             ].map(([leftSem, rightSem], index) => (
                                 <div className="semester-row" key={index}>
                                     {[leftSem, rightSem].map((semester) => {
-                                        const subjects = allSubjects.filter(s => s.semester === semester);
+                                        const subjects = allSubjects
+                                            .filter(s => s.semester === semester)
+                                            .sort((a, b) => a.subjectName.localeCompare(b.subjectName));
+
                                         return (
                                             <div className="semester-column" key={semester}>
                                                 <h4>{semester}</h4>
@@ -265,6 +288,7 @@ const AdminPanel = () => {
                                             </div>
                                         );
                                     })}
+
                                 </div>
                             ))}
                         </div>
@@ -273,28 +297,15 @@ const AdminPanel = () => {
             </div>
 
             <div className="generate-btn-container">
-                <button className="generate-btn" onClick={() => setShowRoutineOptions(true)}>
+                <button className="generate-btn" onClick={() => setShowRoutineSetup(true)}>
                     Generate Routine
                 </button>
             </div>
 
-            {showRoutineOptions && (
-                <div className="routine-popup-overlay">
-                    <div className="routine-popup-card">
-                        <button className="routine-close-btn" onClick={() => setShowRoutineOptions(false)}>❌</button>
-                        <button onClick={() => setShowHolidayCalendar(true)}>Declare Holiday</button>
-                        <button onClick={() => navigate('/routine')}>Show Routine</button>
-                    </div>
-                </div>
-            )}
-
-            {showHolidayCalendar && (
-                <div className="holiday-overlay" onClick={() => setShowHolidayCalendar(false)}>
-                    <div className="holiday-content" onClick={e => e.stopPropagation()}>
-                        <button className="holiday-close-btn" onClick={() => setShowHolidayCalendar(false)}>✖</button>
-                        <HolidayCalendar />
-                    </div>
-                </div>
+            {showRoutineSetup && (
+                <RoutineSetupModal onClose={() => setShowRoutineSetup(false)}
+                    onGenerate={generateAndDownloadRoutine}
+                />
             )}
         </div>
     );
