@@ -6,8 +6,7 @@ import { db } from '../firebase';
 import { getDocs, addDoc, doc, deleteDoc, collection } from "firebase/firestore";
 
 import './AdminPanel.css';
-import RoutineSetupModal from './RoutineSetupModal'; // Add at top
-
+import RoutineSetup from './RoutineSetup';
 
 const AdminPanel = () => {
     const [department, setDepartment] = useState("");
@@ -192,21 +191,6 @@ const AdminPanel = () => {
         if (semester.includes("7th") || semester.includes("8th")) return "4th Year";
         return "";
     };
-    const generateAndDownloadRoutine = async () => {
-        try {
-            const response = await fetch("/generateRoutine.txt");  // served from /public
-            const text = await response.text();
-            const blob = new Blob([text], { type: "text/plain" });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = `routine_${department}_${batch}.txt`;
-            link.click();
-        } catch (err) {
-            alert("Failed to download routine.");
-            console.error(err);
-        }
-    };
-
 
     return (
         <div className="admin-panel-container">
@@ -235,6 +219,7 @@ const AdminPanel = () => {
                         <option value="New">New</option>
                         <option value="Old">Old</option>
                     </select>
+
                 </div>
 
                 <hr />
@@ -303,8 +288,14 @@ const AdminPanel = () => {
             </div>
 
             {showRoutineSetup && (
-                <RoutineSetupModal onClose={() => setShowRoutineSetup(false)}
-                    onGenerate={generateAndDownloadRoutine}
+                <RoutineSetup
+                    department={department}
+                    batch={batch}
+                    onClose={() => setShowRoutineSetup(false)}
+                    onGenerate={() => {
+                        setShowRoutineSetup(false);
+                        alert("Routine saved to Firestore successfully.");
+                    }}
                 />
             )}
         </div>
@@ -312,3 +303,4 @@ const AdminPanel = () => {
 };
 
 export default AdminPanel;
+
