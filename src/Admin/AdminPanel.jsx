@@ -1,25 +1,28 @@
-// AdminPanel.jsx
+// React and Firebase imports
 import React, { useState, useEffect } from "react";
 import { getAuth, signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { db } from '../firebase';
 import { getDocs, addDoc, doc, deleteDoc, collection } from "firebase/firestore";
 
+// CSS and child component imports
 import './AdminPanel.css';
 import RoutineSetup from './RoutineSetup';
 
 const AdminPanel = () => {
-    const [department, setDepartment] = useState("");
-    const [batch, setBatch] = useState("");
-    const [adminEmail, setAdminEmail] = useState("");
-    const [allSubjects, setAllSubjects] = useState([]);
-    const [xmlFile, setXmlFile] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [showRoutineSetup, setShowRoutineSetup] = useState(false);
+    // State declarations
+    const [department, setDepartment] = useState("");           // Selected department
+    const [batch, setBatch] = useState("");                     // Selected batch
+    const [adminEmail, setAdminEmail] = useState("");           // Admin email
+    const [allSubjects, setAllSubjects] = useState([]);         // List of all subjects
+    const [xmlFile, setXmlFile] = useState(null);               // Selected XML file
+    const [loading, setLoading] = useState(false);              // Loading state for XML import
+    const [showRoutineSetup, setShowRoutineSetup] = useState(false); // Show/hide RoutineSetup modal
 
     const navigate = useNavigate();
     const auth = getAuth();
 
+    // Fetch admin email and subjects on department or batch change
     useEffect(() => {
         const currentUser = auth.currentUser;
         if (currentUser) {
@@ -28,6 +31,7 @@ const AdminPanel = () => {
         fetchSubjects();
     }, [department, batch]);
 
+    // Predefined semester labels for use throughout
     const semesterLabels = [
         "1st Semester", "2nd Semester",
         "3rd Semester", "4th Semester",
@@ -35,11 +39,13 @@ const AdminPanel = () => {
         "7th Semester", "8th Semester"
     ];
 
+    // Fetch subjects from Firestore based on department and batch
     const fetchSubjects = async () => {
         if (!department || !batch) {
             setAllSubjects([]);
             return;
         }
+
         try {
             let fetched = [];
             for (const semester of semesterLabels) {
@@ -66,14 +72,17 @@ const AdminPanel = () => {
         }
     };
 
+    // Logout handler
     const handleLogout = async () => {
         await signOut(auth);
         navigate("/login");
     };
 
+    // Delete subject by id and semester
     const handleDelete = async (id, semester) => {
         const confirmDelete = window.confirm("Are you sure you want to delete this subject?");
         if (!confirmDelete) return;
+
         try {
             await deleteDoc(doc(
                 db,
@@ -82,13 +91,15 @@ const AdminPanel = () => {
                 "semesters", semester,
                 "subjects", id
             ));
+            // Remove deleted subject from local state
             setAllSubjects(allSubjects.filter((subj) => subj.id !== id));
             alert("Subject deleted.");
         } catch (error) {
-            console.error("Failed to delete Subjects:", error);
+            console.error("Failed to delete subject:", error);
         }
     };
 
+    // Handle upload and import of XML subject list
     const handleXMLUpload = async (file) => {
         if (!department || !batch) {
             alert("Please select both Department and Batch before uploading.");
@@ -96,11 +107,13 @@ const AdminPanel = () => {
         }
 
         const reader = new FileReader();
+
         reader.onload = async (e) => {
             setLoading(true);
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(e.target.result, "text/xml");
 
+            // Check for XML parsing errors
             if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
                 alert("Invalid XML format.");
                 setLoading(false);
@@ -110,8 +123,10 @@ const AdminPanel = () => {
             const tables = Array.from(xmlDoc.getElementsByTagName("table:table"));
 
             try {
+                // Set to track existing subject entries (name + semester) to avoid duplicates
                 const existingSubjectsSet = new Set();
 
+                // Preload existing subjects
                 for (const sem of semesterLabels) {
                     const semRef = collection(
                         db,
@@ -126,12 +141,14 @@ const AdminPanel = () => {
                     });
                 }
 
+                // Loop through tables (each table contains subjects for 2 semesters)
                 for (let semIndex = 0; semIndex < tables.length; semIndex++) {
                     const table = tables[semIndex];
                     const semester1 = semesterLabels[semIndex * 2];
                     const semester2 = semesterLabels[semIndex * 2 + 1];
                     const rows = table.getElementsByTagName("table:table-row");
 
+                    // Skip first 2 rows (headers)
                     for (let i = 2; i < rows.length; i++) {
                         const cells = rows[i].getElementsByTagName("table:table-cell");
 
@@ -140,6 +157,7 @@ const AdminPanel = () => {
                         const name2 = cells[5]?.textContent.trim();
                         const credit2 = cells[6]?.textContent.trim();
 
+                        // Add subject to semester1 if it doesn’t already exist
                         if (name1 && credit1 && !existingSubjectsSet.has(name1 + "|" + semester1)) {
                             await addDoc(collection(
                                 db,
@@ -154,6 +172,7 @@ const AdminPanel = () => {
                             });
                         }
 
+                        // Add subject to semester2 if it doesn’t already exist
                         if (name2 && credit2 && !existingSubjectsSet.has(name2 + "|" + semester2)) {
                             await addDoc(collection(
                                 db,
@@ -172,7 +191,7 @@ const AdminPanel = () => {
 
                 alert(`Subjects uploaded to: ${department} (${batch} Batch)`);
                 setXmlFile(null);
-                fetchSubjects();
+                fetchSubjects(); // Refresh subjects
             } catch (err) {
                 console.error("Error importing XML:", err);
                 alert("Error importing subjects.");
@@ -181,9 +200,10 @@ const AdminPanel = () => {
             }
         };
 
-        reader.readAsText(file);
+        reader.readAsText(file); // Start file reading
     };
 
+    // Map semester name to year
     const getYearFromSemester = (semester) => {
         if (semester.includes("1st") || semester.includes("2nd")) return "1st Year";
         if (semester.includes("3rd") || semester.includes("4th")) return "2nd Year";
@@ -192,8 +212,10 @@ const AdminPanel = () => {
         return "";
     };
 
+    // ----------------------- JSX Layout -----------------------
     return (
         <div className="admin-panel-container">
+            {/* Header Section */}
             <div className="admin-panel-header">
                 <h2>🛠 Admin Panel</h2>
                 <div className="admin-panel-user-info">
@@ -202,9 +224,11 @@ const AdminPanel = () => {
                 </div>
             </div>
 
+            {/* Form Section: Select department and batch */}
             <div className="admin-panel-content">
                 <div className="admin-form-section">
                     <h3>Enter Subjects list to Database:</h3>
+
                     <label>Department:</label>
                     <select value={department} onChange={(e) => setDepartment(e.target.value)}>
                         <option value="">Select Department</option>
@@ -219,10 +243,11 @@ const AdminPanel = () => {
                         <option value="New">New</option>
                         <option value="Old">Old</option>
                     </select>
-
                 </div>
 
                 <hr />
+
+                {/* XML Import Section */}
                 <h3>Import Subjects via XML</h3>
                 <div className="subject-upload-row">
                     <input
@@ -232,7 +257,8 @@ const AdminPanel = () => {
                     />
                     {xmlFile && !loading && (
                         <button
-                            className="upload-proceed-btn" onClick={() => handleXMLUpload(xmlFile)}
+                            className="upload-proceed-btn"
+                            onClick={() => handleXMLUpload(xmlFile)}
                             disabled={loading}
                         >
                             Proceed
@@ -242,11 +268,13 @@ const AdminPanel = () => {
                 </div>
             </div>
 
+            {/* Subject List Display per Semester */}
             <div className="subject-list-section">
                 {department && batch && (
                     <>
                         <h3>Subjects List</h3>
                         <div className="semester-grid">
+                            {/* Display subjects for two semesters per row */}
                             {[
                                 ["1st Semester", "2nd Semester"],
                                 ["3rd Semester", "4th Semester"],
@@ -273,7 +301,6 @@ const AdminPanel = () => {
                                             </div>
                                         );
                                     })}
-
                                 </div>
                             ))}
                         </div>
@@ -281,12 +308,14 @@ const AdminPanel = () => {
                 )}
             </div>
 
+            {/* Routine Generation Button */}
             <div className="generate-btn-container">
                 <button className="generate-btn" onClick={() => setShowRoutineSetup(true)}>
                     Generate Routine
                 </button>
             </div>
 
+            {/* Routine Modal Display */}
             {showRoutineSetup && (
                 <RoutineSetup
                     department={department}
@@ -303,4 +332,3 @@ const AdminPanel = () => {
 };
 
 export default AdminPanel;
-
