@@ -1,7 +1,7 @@
 // React and Calendar imports
 import React, { useState, useEffect, useRef } from "react";
-import Calendar from "react-calendar"; // Calendar UI component
-import "react-calendar/dist/Calendar.css"; // Default calendar styles
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css";
 
 // Firebase Firestore imports
 import { db } from "../firebase";
@@ -11,78 +11,75 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 import dayjs from "dayjs";
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
-dayjs.extend(isSameOrAfter); // enables isSameOrAfter()
-dayjs.extend(isSameOrBefore); // enables isSameOrBefore()
+dayjs.extend(isSameOrAfter);
+dayjs.extend(isSameOrBefore);
+
+
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
 
 // Component CSS and utility function
 import "./RoutineSetup.css";
 import { generateExamRoutine } from "../utils/generateRoutine";
 
+const RoutineSetup = ({ department, batch, onClose }) => {
+    const [startDate, setStartDate] = useState(null);
+    const [endDate, setEndDate] = useState(null);
+    const [selectedDate, setSelectedDate] = useState(null);
+    const [holidayReason, setHolidayReason] = useState("");
+    const [holidays, setHolidays] = useState({});
+    const [saving, setSaving] = useState(false);
+    const [seasonYear, setSeasonYear] = useState("");
+    const [generatedRoutine, setGeneratedRoutine] = useState([]);
 
-// Main RoutineSetup component
-const RoutineSetup = ({ department, batch, onClose, onGenerate }) => {
-    // UI state management
-    const [startDate, setStartDate] = useState(null); // Exam start date
-    const [endDate, setEndDate] = useState(null); // Exam end date
-    const [selectedDate, setSelectedDate] = useState(null); // Date selected on calendar
-    const [holidayReason, setHolidayReason] = useState(""); // Input for holiday reason
-    const [holidays, setHolidays] = useState({}); // All holidays (object with date: reason)
-    const [saving, setSaving] = useState(false); // Loading state for add/remove/save
-    const [seasonYear, setSeasonYear] = useState(""); // Term name, e.g., Spring_2025
+    const calendarRef = useRef(null);
 
-    const calendarRef = useRef(null); // Ref for the calendar container (optional)
-
-    // Load saved routine details (start date, end date, holidays) if available
     useEffect(() => {
         const fetchRoutineDoc = async () => {
-            if (!department || !batch || !seasonYear.trim()) return; // Validation check
+            if (!department || !batch || !seasonYear.trim()) return;
 
             try {
-                const docRef = doc(db, "Routine", department, batch, seasonYear.trim()); // Document path
-                const snap = await getDoc(docRef); // Fetch data
+                const docRef = doc(db, "Routine", department, batch, seasonYear.trim());
+                const snap = await getDoc(docRef);
 
                 if (snap.exists()) {
                     const data = snap.data();
                     setStartDate(data.meta?.startDate || null);
                     setEndDate(data.meta?.endDate || null);
-                    setHolidays(data.holidays || {}); // Set holidays if any
+                    setHolidays(data.holidays || {});
                 }
             } catch (err) {
                 console.error("Failed to fetch routine data:", err);
             }
         };
 
-        fetchRoutineDoc(); // Trigger data fetch on component mount or change
+        fetchRoutineDoc();
     }, [department, batch, seasonYear]);
 
-    // Validates that exam window is between 1 and 50 days
     const isValidDateRange = () => {
         if (!startDate || !endDate) return false;
         const diff = dayjs(endDate).diff(dayjs(startDate), "day");
         return diff >= 1 && diff <= 50;
     };
 
-    // Checks if a date is within the selected exam window
     const isWithinWindow = (dateStr) => {
         if (!startDate || !endDate) return false;
         const date = dayjs(dateStr);
         return date.isSameOrAfter(dayjs(startDate)) && date.isSameOrBefore(dayjs(endDate));
     };
 
-    // Highlights holidays on calendar
     const tileClassName = ({ date }) => {
         const formatted = dayjs(date).format("YYYY-MM-DD");
-        return holidays[formatted] ? "holiday" : ""; // Return "holiday" class if date is a holiday
+        return holidays[formatted] ? "holiday" : "";
     };
 
-    // Sets selected date from calendar
     const handleDateClick = (date) => {
         const formatted = dayjs(date).format("YYYY-MM-DD");
-        setSelectedDate(formatted); // Update selected date
-        setHolidayReason(""); // Reset input field
+        setSelectedDate(formatted);
+        setHolidayReason("");
     };
 
-    // Adds a holiday to Firestore and local state
     const addHoliday = async () => {
         if (!selectedDate || !holidayReason.trim()) {
             alert("Provide a holiday reason.");
@@ -99,39 +96,36 @@ const RoutineSetup = ({ department, batch, onClose, onGenerate }) => {
             return;
         }
 
-        const updated = { ...holidays, [selectedDate]: holidayReason }; // Update state
-        setSaving(true); // Start loading state
+        const updated = { ...holidays, [selectedDate]: holidayReason };
+        setSaving(true);
 
         try {
             const docRef = doc(db, "Routine", department, batch, seasonYear.trim());
-            await setDoc(docRef, { holidays: updated }, { merge: true }); // Save holidays to Firestore
-
-            setHolidays(updated); // Update local UI
-            setSelectedDate(null); // Reset form
+            await setDoc(docRef, { holidays: updated }, { merge: true });
+            setHolidays(updated);
+            setSelectedDate(null);
             setHolidayReason("");
         } catch (err) {
             console.error("Failed to save holiday:", err);
             alert("Error saving holiday.");
         } finally {
-            setSaving(false); // Stop loading
+            setSaving(false);
         }
     };
 
-    // Removes a holiday from Firestore and UI
     const removeHoliday = async () => {
         if (!selectedDate || !holidays[selectedDate]) return;
         if (!window.confirm("Are you sure you want to remove this holiday?")) return;
 
         const updated = { ...holidays };
-        delete updated[selectedDate]; // Remove from object
+        delete updated[selectedDate];
 
-        setSaving(true); // Start loading
+        setSaving(true);
 
         try {
             const docRef = doc(db, "Routine", department, batch, seasonYear.trim());
-            await setDoc(docRef, { holidays: updated }, { merge: true }); // Update Firestore
-
-            setHolidays(updated); // Update UI
+            await setDoc(docRef, { holidays: updated }, { merge: true });
+            setHolidays(updated);
             setSelectedDate(null);
             setHolidayReason("");
         } catch (err) {
@@ -142,7 +136,6 @@ const RoutineSetup = ({ department, batch, onClose, onGenerate }) => {
         }
     };
 
-    // Generates the exam routine and saves it to Firestore
     const handleGenerate = async () => {
         if (!startDate || !endDate || !seasonYear.trim()) {
             alert("Please select start date, end date, and season/year.");
@@ -160,16 +153,6 @@ const RoutineSetup = ({ department, batch, onClose, onGenerate }) => {
             const formattedStart = dayjs(startDate).format("YYYY-MM-DD");
             const formattedEnd = dayjs(endDate).format("YYYY-MM-DD");
 
-            console.log("📋 Routine generation params:", {
-                department,
-                batch,
-                seasonYear,
-                startDate: formattedStart,
-                endDate: formattedEnd,
-                holidays,
-            });
-
-            // Actually run the generator
             const routine = await generateExamRoutine(
                 db,
                 department,
@@ -180,15 +163,13 @@ const RoutineSetup = ({ department, batch, onClose, onGenerate }) => {
                 holidays
             );
 
-            // Check if routine is empty
             if (!routine || routine.length === 0) {
-                alert("No subjects found or assigned. Please check subject data in Firestore.");
+                alert("No subjects found or assigned. Please check Firestore data.");
                 return;
             }
 
-            console.log("📅 Routine generated:", routine);
-            alert("Routine saved to Firestore successfully.");
-            onGenerate();
+            setGeneratedRoutine(routine);
+            alert("Routine generated successfully. See below 👇");
         } catch (err) {
             console.error("Routine generation failed:", err);
             alert("❌ Failed to generate routine. See console for details.");
@@ -196,6 +177,34 @@ const RoutineSetup = ({ department, batch, onClose, onGenerate }) => {
             setSaving(false);
         }
     };
+
+    const exportToPDF = () => {
+        if (!generatedRoutine.length) {
+            alert("No routine data to export.");
+            return;
+        }
+
+        const doc = new jsPDF();
+        doc.setFontSize(16);
+        doc.text("Generated Exam Routine", 14, 20);
+
+        const tableData = generatedRoutine.map(entry => [
+            entry.date,
+            entry.subjectName,
+            entry.semester,
+        ]);
+
+        autoTable(doc, {
+            startY: 30,
+            head: [["Date", "Subject Name", "Semester"]],
+            body: tableData,
+            theme: "striped"
+        });
+
+        doc.save(`Exam_Routine_${seasonYear || "Unknown"}.pdf`);
+    };
+
+
 
 
     return (
@@ -305,7 +314,57 @@ const RoutineSetup = ({ department, batch, onClose, onGenerate }) => {
                     </button>
                 </div>
             </div>
+            {generatedRoutine.length > 0 && (
+                <div className="routine-preview-container">
+                    <h3>📋 Generated Routine</h3>
+
+                    <div className="routine-table-wrapper">
+                        <table className="routine-preview-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Subject Name</th>
+                                    <th>Semester</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {generatedRoutine.map((entry, index) => (
+                                    <tr key={index}>
+                                        <td>{entry.date}</td>
+                                        <td>{entry.subjectName}</td>
+                                        <td>{entry.semester}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div className="generated-routine-modal">
+                        {/* CLOSE BUTTON AT TOP-RIGHT */}
+                        <button className="routine-close-btn" onClick={onClose} title="Close">✖</button>
+
+                        <h3>📄 Generated Routine</h3>
+
+                        <table className="routine-table">
+                            {/* table header and body here */}
+                        </table>
+
+                        <div className="routine-buttons-row">
+                            <button onClick={exportToPDF} className="pdf-export-btn">
+                                📥 Export as PDF
+                            </button>
+                        </div>
+                    </div>
+
+
+                </div>
+            )}
+
+
+
+
         </div>
+
     );
 };
 
