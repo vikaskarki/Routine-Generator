@@ -16,7 +16,8 @@ dayjs.extend(isSameOrBefore); // enables isSameOrBefore()
 
 // Component CSS and utility function
 import "./RoutineSetup.css";
-import { fetchAllSubjects } from "../utils/fetchSubjects"; // Function to get subjects
+import { generateExamRoutine } from "../utils/generateRoutine";
+
 
 // Main RoutineSetup component
 const RoutineSetup = ({ department, batch, onClose, onGenerate }) => {
@@ -153,62 +154,49 @@ const RoutineSetup = ({ department, batch, onClose, onGenerate }) => {
             return;
         }
 
-        setSaving(true); // Start saving process
+        setSaving(true);
 
         try {
             const formattedStart = dayjs(startDate).format("YYYY-MM-DD");
             const formattedEnd = dayjs(endDate).format("YYYY-MM-DD");
 
-            const routineDocRef = doc(db, "Routine", department, batch, seasonYear.trim());
-
-            const subjects = await fetchAllSubjects(department, batch); // Get subject list
-            subjects.sort((a, b) => a.semester.localeCompare(b.semester)); // Sort by semester
-
-            const routine = []; // Final routine array
-            let current = dayjs(startDate); // Start from start date
-
-            // Loop through subjects and assign dates
-            for (const subject of subjects) {
-                while (
-                    current.isSameOrBefore(endDate) &&
-                    holidays[current.format("YYYY-MM-DD")]
-                ) {
-                    current = current.add(1, "day"); // Skip holidays
-                }
-
-                if (current.isAfter(endDate)) {
-                    alert("Not enough available days to schedule all subjects.");
-                    break;
-                }
-
-                routine.push({
-                    subjectName: subject.subjectName,
-                    semester: subject.semester,
-                    date: current.format("YYYY-MM-DD"),
-                });
-
-                current = current.add(1, "day"); // Move to next date
-            }
-
-            // Save routine with meta and holidays to Firestore
-            await setDoc(routineDocRef, {
-                meta: {
-                    startDate: formattedStart,
-                    endDate: formattedEnd,
-                    createdAt: new Date().toISOString()
-                },
+            console.log("📋 Routine generation params:", {
+                department,
+                batch,
+                seasonYear,
+                startDate: formattedStart,
+                endDate: formattedEnd,
                 holidays,
-                routine
             });
 
-            onGenerate(); // Notify parent component
+            // Actually run the generator
+            const routine = await generateExamRoutine(
+                db,
+                department,
+                batch,
+                seasonYear.trim(),
+                formattedStart,
+                formattedEnd,
+                holidays
+            );
+
+            // Check if routine is empty
+            if (!routine || routine.length === 0) {
+                alert("No subjects found or assigned. Please check subject data in Firestore.");
+                return;
+            }
+
+            console.log("📅 Routine generated:", routine);
+            alert("Routine saved to Firestore successfully.");
+            onGenerate();
         } catch (err) {
-            console.error("Error saving routine:", err);
-            alert("Failed to save routine.");
+            console.error("Routine generation failed:", err);
+            alert("❌ Failed to generate routine. See console for details.");
         } finally {
-            setSaving(false); // Stop saving
+            setSaving(false);
         }
     };
+
 
     return (
         <div className="routine-setup-overlay">
