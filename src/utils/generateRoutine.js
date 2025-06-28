@@ -4,15 +4,15 @@ import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 dayjs.extend(isSameOrBefore);
 
 /**
- * Generate and save exam routine using a greedy heuristic with constraints.
+ * Generate and save exam routine for a fixed 50-day window.
  *
  * @param {object} db - Firestore instance
  * @param {string} department
  * @param {string} batch
- * @param {string} seasonYear - e.g., Fall_2024
+ * @param {string} seasonYear - e.g., Spring_2025
  * @param {string} startDate - in YYYY-MM-DD format
- * @param {string} endDate - in YYYY-MM-DD format
- * @param {Object} holidays - { "YYYY-MM-DD": "reason", ... }
+ * @param {string} endDate - in YYYY-MM-DD format (not used for range calculation here)
+ * @param {Object} holidays - { "YYYY-MM-DD": "reason", ... } (stored but not used for exclusion)
  */
 export const generateExamRoutine = async (
     db,
@@ -32,7 +32,7 @@ export const generateExamRoutine = async (
 
     const allSubjects = [];
 
-    // Step 1: Fetch subjects from Firestore
+    // Step 1: Fetch subjects for each semester
     for (const semester of semesterLabels) {
         const ref = collection(
             db,
@@ -52,62 +52,58 @@ export const generateExamRoutine = async (
         });
     }
 
-    // Step 2: Create valid exam date pool (excluding holidays)
+    if (allSubjects.length > 50) {
+        throw new Error(`Too many subjects (${allSubjects.length}) for 50-day window. Reduce subject count or allow multiple exams per day.`);
+    }
+
+    // NEW: exclude holidays from date pool
     const datePool = [];
     let current = dayjs(startDate);
-    while (current.isSameOrBefore(endDate)) {
+
+    while (datePool.length < 50) {
         const formatted = current.format("YYYY-MM-DD");
+
         if (!holidays[formatted]) {
             datePool.push(formatted);
         }
+
         current = current.add(1, "day");
+
+        // Prevent infinite loop (in case holidays block too many dates)
+        if (current.diff(dayjs(startDate), "day") > 100) {
+            throw new Error("Too many holidays or short window. Cannot generate 50 non-holiday exam days.");
+        }
     }
 
-    if (datePool.length === 0) {
-        throw new Error("No valid exam dates available (all are holidays?)");
-    }
-
-    // Step 3: Greedy scheduling with constraints
-    const routine = [];
-    const lastScheduledDatePerSemester = {}; // { semester: date }
-
-    // Shuffle subjects to introduce randomness
+    // Step 3: Shuffle subjects and assign them to the 50 days
     const subjects = [...allSubjects].sort(() => Math.random() - 0.5);
 
-    let dateIndex = 0;
+    const routine = [];
 
-    for (const subject of subjects) {
-        while (dateIndex < datePool.length) {
-            const date = datePool[dateIndex];
-            const lastDate = lastScheduledDatePerSemester[subject.semester];
+    for (let i = 0; i < datePool.length; i++) {
+        const date = datePool[i];
 
-            const diff = lastDate ? dayjs(date).diff(dayjs(lastDate), "day") : Infinity;
-            if (diff >= 2) {
-                routine.push({
-                    date,
-                    subjectName: subject.subjectName,
-                    semester: subject.semester,
-                });
-                lastScheduledDatePerSemester[subject.semester] = date;
-                dateIndex++; // Move to next date (one exam per day)
-                break;
-            } else {
-                dateIndex++;
-            }
-        }
-
-        if (dateIndex >= datePool.length) {
-            throw new Error(`Unable to schedule all subjects. Not enough dates.`);
+        if (i < subjects.length) {
+            routine.push({
+                date,
+                subjectName: subjects[i].subjectName,
+                semester: subjects[i].semester
+            });
+        } else {
+            routine.push({
+                date,
+                subjectName: "-",
+                semester: "-"
+            });
         }
     }
 
-    routine.sort((a, b) => dayjs(a.date).diff(dayjs(b.date)));
-
-    const routineDocRef = doc(db, "Routine", department, batch, seasonYear);
+    // Step 4: Save routine to Firestore
+    const routineDocRef = doc(db, "Routine", seasonYear, department, batch);
     await setDoc(routineDocRef, {
         meta: {
             startDate,
-            endDate,
+            endDate: datePool[datePool.length - 1],
             createdAt: new Date().toISOString(),
         },
         holidays,
@@ -116,3 +112,4 @@ export const generateExamRoutine = async (
 
     return routine;
 };
+

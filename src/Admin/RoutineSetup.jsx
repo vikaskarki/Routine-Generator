@@ -40,7 +40,7 @@ const RoutineSetup = ({ department, batch, onClose }) => {
             if (!department || !batch || !seasonYear.trim()) return;
 
             try {
-                const docRef = doc(db, "Routine", department, batch, seasonYear.trim());
+                const docRef = doc(db, "Routine", seasonYear.trim(), department, batch,);
                 const snap = await getDoc(docRef);
 
                 if (snap.exists()) {
@@ -59,9 +59,11 @@ const RoutineSetup = ({ department, batch, onClose }) => {
 
     const isValidDateRange = () => {
         if (!startDate || !endDate) return false;
-        const diff = dayjs(endDate).diff(dayjs(startDate), "day");
-        return diff >= 1 && diff <= 50;
+        const diff = dayjs(endDate).diff(dayjs(startDate), "day") + 1; // inclusive
+        return diff === 50;
     };
+
+
 
     const isWithinWindow = (dateStr) => {
         if (!startDate || !endDate) return false;
@@ -100,7 +102,7 @@ const RoutineSetup = ({ department, batch, onClose }) => {
         setSaving(true);
 
         try {
-            const docRef = doc(db, "Routine", department, batch, seasonYear.trim());
+            const docRef = doc(db, "Routine", seasonYear.trim(), department, batch,);
             await setDoc(docRef, { holidays: updated }, { merge: true });
             setHolidays(updated);
             setSelectedDate(null);
@@ -123,7 +125,7 @@ const RoutineSetup = ({ department, batch, onClose }) => {
         setSaving(true);
 
         try {
-            const docRef = doc(db, "Routine", department, batch, seasonYear.trim());
+            const docRef = doc(db, "Routine", seasonYear.trim(), department, batch,);
             await setDoc(docRef, { holidays: updated }, { merge: true });
             setHolidays(updated);
             setSelectedDate(null);
@@ -143,7 +145,7 @@ const RoutineSetup = ({ department, batch, onClose }) => {
         }
 
         if (!isValidDateRange()) {
-            alert("Exam window must be between 1 to 50 days.");
+            alert("Exam window must be between 1 to 60 days.");
             return;
         }
 
@@ -234,8 +236,17 @@ const RoutineSetup = ({ department, batch, onClose }) => {
                             id="start-date"
                             type="date"
                             value={startDate || ""}
-                            onChange={(e) => setStartDate(e.target.value)}
+                            onChange={(e) => {
+                                const start = e.target.value;
+                                setStartDate(start);
+
+                                if (start) {
+                                    const autoEnd = dayjs(start).add(49, "day").format("YYYY-MM-DD"); // inclusive of start
+                                    setEndDate(autoEnd);
+                                }
+                            }}
                         />
+
                     </div>
                     <div>
                         <label htmlFor="end-date">Exam End Date:</label>
