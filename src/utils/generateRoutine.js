@@ -4,7 +4,7 @@ import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 dayjs.extend(isSameOrBefore);
 
 /**
- * Generate and save exam routine using a greedy algorithm with constraints.
+ * Generate and save exam routine using a greedy heuristic with constraints.
  *
  * @param {object} db - Firestore instance
  * @param {string} department
@@ -46,55 +46,64 @@ export const generateExamRoutine = async (
             const data = docSnap.data();
             allSubjects.push({
                 subjectName: data.subjectName,
-                semester: semester,
+                semester,
+                credit: data.credit || 3,
             });
         });
     }
 
-    // Step 2: Greedy scheduling with grouping
-    const routine = [];
-    const dateQueue = [];
+    // Step 2: Create valid exam date pool (excluding holidays)
+    const datePool = [];
     let current = dayjs(startDate);
-
     while (current.isSameOrBefore(endDate)) {
         const formatted = current.format("YYYY-MM-DD");
         if (!holidays[formatted]) {
-            dateQueue.push(formatted); // valid exam date
+            datePool.push(formatted);
         }
         current = current.add(1, "day");
     }
 
-    if (dateQueue.length === 0) {
+    if (datePool.length === 0) {
         throw new Error("No valid exam dates available (all are holidays?)");
     }
 
-    const routineMap = {}; // { date: [ { subjectName, semester } ] }
+    // Step 3: Greedy scheduling with constraints
+    const routine = [];
+    const lastScheduledDatePerSemester = {}; // { semester: date }
 
-    for (let i = 0; i < allSubjects.length; i++) {
-        const dateIndex = i % dateQueue.length; // round-robin allocation
-        const targetDate = dateQueue[dateIndex];
+    // Shuffle subjects to introduce randomness
+    const subjects = [...allSubjects].sort(() => Math.random() - 0.5);
 
-        if (!routineMap[targetDate]) {
-            routineMap[targetDate] = [];
+    let dateIndex = 0;
+
+    for (const subject of subjects) {
+        while (dateIndex < datePool.length) {
+            const date = datePool[dateIndex];
+            const lastDate = lastScheduledDatePerSemester[subject.semester];
+
+            const diff = lastDate ? dayjs(date).diff(dayjs(lastDate), "day") : Infinity;
+            if (diff >= 2) {
+                routine.push({
+                    date,
+                    subjectName: subject.subjectName,
+                    semester: subject.semester,
+                });
+                lastScheduledDatePerSemester[subject.semester] = date;
+                dateIndex++; // Move to next date (one exam per day)
+                break;
+            } else {
+                dateIndex++;
+            }
         }
 
-        routineMap[targetDate].push(allSubjects[i]);
+        if (dateIndex >= datePool.length) {
+            throw new Error(`Unable to schedule all subjects. Not enough dates.`);
+        }
     }
 
-    // Convert routineMap to flat array format
-    for (const [date, subjects] of Object.entries(routineMap)) {
-        subjects.forEach(subject => {
-            routine.push({
-                date,
-                subjectName: subject.subjectName,
-                semester: subject.semester,
-            });
-        });
-    }
+    routine.sort((a, b) => dayjs(a.date).diff(dayjs(b.date)));
 
-    // Step 3: Save to Firestore
     const routineDocRef = doc(db, "Routine", department, batch, seasonYear);
-
     await setDoc(routineDocRef, {
         meta: {
             startDate,
@@ -102,7 +111,7 @@ export const generateExamRoutine = async (
             createdAt: new Date().toISOString(),
         },
         holidays,
-        routine
+        routine,
     });
 
     return routine;
