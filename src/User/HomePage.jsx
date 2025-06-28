@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { auth, db } from '../firebase';
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 
 import "./HomePage.css";
@@ -17,6 +17,11 @@ function HomePage() {
     const [availableBackSubjects, setAvailableBackSubjects] = useState([]);
     const [selectedBackSubjects, setSelectedBackSubjects] = useState([]);
 
+    const [seasonYear, setSeasonYear] = useState("");
+    const [routineData, setRoutineData] = useState(null);
+    const [showRoutineModal, setShowRoutineModal] = useState(false);
+
+
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -24,42 +29,37 @@ function HomePage() {
         if (!user) navigate("/login");
     }, [navigate]);
 
-
-    // ✅ Fetch Regular Subjects when batch, department, year, and semester change
     useEffect(() => {
         const fetchRegularSubjects = async () => {
-            if (batch && department && year && semester) {
-                try {
-                    const q = query(
-                        collection(db, 'subjects'),
-                        where('batch', '==', batch),
-                        where('department', '==', department),
-                        where('year', '==', year),
-                        where('semester', '==', semester)
-                    );
-                    const querySnapshot = await getDocs(q);
+            if (!department || !batch || !semester) {
+                setRegularSubjects([]);
+                return;
+            }
 
-                    const fetchedSubjects = [
-                        ...new Set(querySnapshot.docs.map(doc => doc.data().subjectName))
-                    ];
-                    setRegularSubjects(fetchedSubjects);
+            try {
+                const subjectsRef = collection(
+                    db,
+                    "departments", department,
+                    "batches", batch,
+                    "semesters", semester,
+                    "subjects"
+                );
 
-                } catch (error) {
-                    console.error('Error fetching regular subjects:', error);
-                }
-            } else {
+                const snapshot = await getDocs(subjectsRef);
+                const fetchedSubjects = snapshot.docs.map(doc => doc.data().subjectName);
+                setRegularSubjects(fetchedSubjects);
+            } catch (error) {
+                console.error("Error fetching regular subjects:", error);
                 setRegularSubjects([]);
             }
         };
 
         fetchRegularSubjects();
-    }, [batch, department, year, semester]);
+    }, [department, batch, semester]);
 
-
-    // ✅ Fetch Backlog Semesters (grouped as "year - semester")
     useEffect(() => {
         const fetchBackSemesters = async () => {
-            if (!batch || !department || !semester) return;
+            if (!department || !batch || !semester) return;
 
             const semesterOrder = [
                 "1st Semester", "2nd Semester", "3rd Semester", "4th Semester",
@@ -69,58 +69,47 @@ function HomePage() {
             const currentSemesterIndex = semesterOrder.indexOf(semester);
             if (currentSemesterIndex === -1) return;
 
-            const q = query(
-                collection(db, "subjects"),
-                where("batch", "==", batch),
-                where("department", "==", department)
-            );
-            const snapshot = await getDocs(q);
+            const previousSemesters = semesterOrder.slice(0, currentSemesterIndex);
 
-            const semestersSet = new Set();
-            snapshot.forEach(doc => {
-                const docSemester = doc.data().semester;
-                const docYear = doc.data().year;
-                const semIndex = semesterOrder.indexOf(docSemester);
-                if (semIndex !== -1 && semIndex < currentSemesterIndex) {
-                    semestersSet.add(`${docYear} - ${docSemester}`);
-                }
+            const formatted = previousSemesters.map(sem => {
+                let year = "";
+                if (sem.includes("1st") || sem.includes("2nd")) year = "1st Year";
+                else if (sem.includes("3rd") || sem.includes("4th")) year = "2nd Year";
+                else if (sem.includes("5th") || sem.includes("6th")) year = "3rd Year";
+                else if (sem.includes("7th") || sem.includes("8th")) year = "4th Year";
+                return `${year} - ${sem}`;
             });
 
-            const sortedSemesters = Array.from(semestersSet).sort((a, b) => {
-                const [, aSem] = a.split(" - ");
-                const [, bSem] = b.split(" - ");
-                return semesterOrder.indexOf(aSem) - semesterOrder.indexOf(bSem);
-            });
-
-            setBackSemesters(sortedSemesters);
+            setBackSemesters(formatted);
         };
 
         fetchBackSemesters();
-    }, [batch, department, semester]);
+    }, [department, batch, semester]);
 
-
-    // ✅ Fetch Back Subjects for Selected Backlog Semester
-    const handleBackSemesterChange = async e => {
+    const handleBackSemesterChange = async (e) => {
         const selected = e.target.value;
         setSelectedBackSemester(selected);
         if (!selected) return;
 
-        const [yearPart, semPart] = selected.split(" - ");
-        const q = query(
-            collection(db, "subjects"),
-            where("batch", "==", batch),
-            where("department", "==", department),
-            where("year", "==", yearPart),
-            where("semester", "==", semPart)
-        );
-        const snapshot = await getDocs(q);
-        const subjects = [
-            ...new Set(snapshot.docs.map(doc => doc.data().subjectName))
-        ];
-        setAvailableBackSubjects(subjects);
+        const [, semPart] = selected.split(" - ");
+
+        try {
+            const subjectsRef = collection(
+                db,
+                "departments", department,
+                "batches", batch,
+                "semesters", semPart,
+                "subjects"
+            );
+            const snapshot = await getDocs(subjectsRef);
+            const subjects = snapshot.docs.map(doc => doc.data().subjectName);
+            setAvailableBackSubjects(subjects);
+        } catch (error) {
+            console.error("Error fetching back subjects:", error);
+            setAvailableBackSubjects([]);
+        }
     };
 
-    // ✅ Add selected back subject
     const handleBackSubjectChange = (e) => {
         const subject = e.target.value;
         if (subject && !selectedBackSubjects.find(s => s.name === subject)) {
@@ -131,7 +120,6 @@ function HomePage() {
         }
     };
 
-    // ✅ Remove subject from back list
     const removeBackSubject = subject => {
         setSelectedBackSubjects(selectedBackSubjects.filter(s => s.name !== subject));
     };
@@ -149,7 +137,26 @@ function HomePage() {
         "3rd Year": ["5th Semester", "6th Semester"],
         "4th Year": ["7th Semester", "8th Semester"]
     };
+    const handleRoutineFetch = async () => {
+        if (!seasonYear || !department || !batch) return;
 
+        try {
+            const routineDocRef = doc(db, "Routine", seasonYear, department, batch);
+            const routineSnapshot = await getDoc(routineDocRef);
+
+            if (routineSnapshot.exists()) {
+                setRoutineData(routineSnapshot.data());
+                setShowRoutineModal(true);
+            } else {
+                alert("Routine not found for selected season, department, and batch.");
+                setRoutineData(null);
+                setShowRoutineModal(false);
+            }
+        } catch (err) {
+            console.error("Error fetching routine:", err);
+            alert("Failed to fetch routine.");
+        }
+    };
 
     return (
         <div className="student-container">
@@ -157,8 +164,8 @@ function HomePage() {
                 <span className="welcome-text">Welcome, {auth.currentUser?.email}</span>
                 <button className="logout-button" onClick={logout}>Logout</button>
             </div>
-            <h2>Dashboard</h2>
 
+            <h2>Dashboard</h2>
 
             <div className="row-group">
                 <div className="form-group half-width">
@@ -179,7 +186,6 @@ function HomePage() {
                     </select>
                 </div>
             </div>
-
 
             <div className="form-group">
                 <label>Current Year</label>
@@ -225,7 +231,7 @@ function HomePage() {
 
             <div className="routine-section-columns">
                 <div className="subject-column">
-                    <h3><span style={{ color: 'green' }}>🟢</span> Regular Subjects</h3>
+                    <h3>🟢 Regular Subjects</h3>
                     <ul>
                         {regularSubjects.map((subject, index) => (
                             <li key={index}>{subject}</li>
@@ -234,7 +240,7 @@ function HomePage() {
                 </div>
 
                 <div className="subject-column">
-                    <h3><span style={{ color: 'red' }}>🔴</span> Back Subjects</h3>
+                    <h3>🔴 Back Subjects</h3>
                     <ul>
                         {selectedBackSubjects.map((subj, i) => (
                             <li className="back" key={i}>
@@ -246,9 +252,47 @@ function HomePage() {
                 </div>
             </div>
 
-            <div className="generate-button-wrapper">
-                <button className="generate-button">Display Routine</button>
+            <div className="form-group">
+                <label>Season Year</label>
+                <input
+                    type="text"
+                    placeholder="e.g. Spring_2025"
+                    value={seasonYear}
+                    onChange={(e) => setSeasonYear(e.target.value)}
+                />
             </div>
+
+            <div className="generate-button-wrapper">
+                <button className="generate-button" onClick={handleRoutineFetch}>
+                    Display Routine
+                </button>
+
+            </div>
+
+            {routineData && showRoutineModal && (
+                <div className="routine-modal-overlay">
+                    <div className="routine-modal-content">
+                        <button className="routine-modal-close" onClick={() => setShowRoutineModal(false)}>&times;</button>
+                        <h3>📅 Exam Routine</h3>
+                        <ul>
+                            {routineData.routine
+                                .filter(item =>
+                                    regularSubjects.includes(item.subjectName) ||
+                                    selectedBackSubjects.some(s => s.name === item.subjectName)
+                                )
+                                .map((item, index) => {
+                                    const isBack = selectedBackSubjects.some(s => s.name === item.subjectName);
+                                    return (
+                                        <li key={index} className={isBack ? "routine-item back" : "routine-item regular"}>
+                                            <strong>{item.date}</strong>: {item.subjectName} ({item.semester})
+                                        </li>
+                                    );
+                                })}
+                        </ul>
+                    </div>
+                </div>
+            )}
+
 
 
         </div>
