@@ -30,10 +30,10 @@ function SignupPage() {
         };
 
         emailjs.send(
-            "service_0sq0vrq",
-            "template_b0ekm3g",
+            "service_ohmk58g",
+            "template_8y56tog",
             templateParams,
-            "W3KXkBkme_Alrk5g5"
+            "S0mKFa34J2qRqLGQk"
         ).then(() => {
             alert("✅ OTP sent to your email.");
             setOtpSent(true);

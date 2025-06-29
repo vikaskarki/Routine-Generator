@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import "./HomePage.css";
 
 function HomePage() {
+    const [userName, setUserName] = useState("");
     const [batch, setBatch] = useState("");
     const [department, setDepartment] = useState("");
     const [year, setYear] = useState("");
@@ -26,8 +27,25 @@ function HomePage() {
 
     useEffect(() => {
         const user = auth.currentUser;
-        if (!user) navigate("/login");
+        if (!user) {
+            navigate("/login");
+            return;
+        }
+
+        const fetchUserName = async () => {
+            try {
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    setUserName(userDoc.data().name);
+                }
+            } catch (err) {
+                console.error("Failed to fetch user name:", err);
+            }
+        };
+
+        fetchUserName();
     }, [navigate]);
+
 
     useEffect(() => {
         const fetchRegularSubjects = async () => {
@@ -161,7 +179,7 @@ function HomePage() {
     return (
         <div className="student-container">
             <div className="header">
-                <span className="welcome-text">Welcome, {auth.currentUser?.email}</span>
+                <span className="welcome-text">Welcome, {userName || auth.currentUser?.displayName || auth.currentUser?.email}</span>
                 <button className="logout-button" onClick={logout}>Logout</button>
             </div>
 
