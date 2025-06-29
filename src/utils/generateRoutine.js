@@ -77,26 +77,49 @@ export const generateExamRoutine = async (
 
     // Step 3: Shuffle subjects and assign them to the 50 days
     const subjects = [...allSubjects].sort(() => Math.random() - 0.5);
+    const routine = Array(datePool.length).fill(null);
 
-    const routine = [];
+    // Keep track of last used index for each semester
 
-    for (let i = 0; i < datePool.length; i++) {
-        const date = datePool[i];
+    for (const subject of subjects) {
+        const { semester, subjectName } = subject;
 
-        if (i < subjects.length) {
-            routine.push({
-                date,
-                subjectName: subjects[i].subjectName,
-                semester: subjects[i].semester
-            });
-        } else {
-            routine.push({
-                date,
-                subjectName: "-",
-                semester: "-"
-            });
+        let placed = false;
+
+        for (let i = 0; i < routine.length; i++) {
+            const prev1 = routine[i - 1];
+            const prev2 = routine[i - 2];
+
+            const prev1Same = prev1?.semester === semester;
+            const prev2Same = prev2?.semester === semester;
+
+            if (!routine[i] && !prev1Same && !prev2Same) {
+                routine[i] = {
+                    date: datePool[i],
+                    subjectName,
+                    semester
+                };
+                placed = true;
+                break;
+            }
+        }
+
+        if (!placed) {
+            throw new Error(`Could not place subject "${subjectName}" from ${semester} without violating spacing constraints.`);
         }
     }
+
+    // Fill empty days with placeholders
+    for (let i = 0; i < routine.length; i++) {
+        if (!routine[i]) {
+            routine[i] = {
+                date: datePool[i],
+                subjectName: "-",
+                semester: "-"
+            };
+        }
+    }
+
 
     // Step 4: Save routine to Firestore
     const routineDocRef = doc(db, "Routine", seasonYear, department, batch);
