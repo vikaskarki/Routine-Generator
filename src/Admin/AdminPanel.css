@@ -131,17 +131,80 @@ h3 {
 }
 
 .subject-list li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     padding: 6px 0;
     border-bottom: 1px solid #eee;
     font-size: 14px;
 }
 
-.subject-list li span {
+/* === View Mode === */
+.subject-list li .view-mode {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.subject-list li .view-mode span {
     color: #555a61;
     font-weight: 500;
+}
+
+.subject-list li .view-mode button {
+    padding: 6px 10px;
+    margin: 2px 4px 0 0;
+    font-size: 13px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #f0f0f0;
+    color: #333;
+    transition: background-color 0.2s ease;
+}
+
+.subject-list li .view-mode button:hover {
+    background-color: #e0e0e0;
+}
+
+/* === Edit Mode Compact Layout === */
+.subject-list li .edit-mode {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    background-color: #8a9fb6;
+    padding: 10px 12px;
+    border-radius: 6px;
+}
+
+.subject-list li .edit-mode button:first-of-type:hover {
+    background-color: #42bb5e;
+}
+
+.subject-list li .edit-mode button:last-of-type {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Horizontal action row for Edit + Delete buttons */
+.action-buttons-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.action-buttons-row button {
+    flex: 1;
+    padding: 6px 10px;
+    font-size: 13px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #f0f0f0;
+    color: #333;
+    transition: background-color 0.2s ease;
+}
+
+.action-buttons-row button:hover {
+    background-color: #e0e0e0;
 }
 
 

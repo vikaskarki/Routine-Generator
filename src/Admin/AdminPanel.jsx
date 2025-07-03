@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { getAuth, signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { db } from '../firebase';
-import { getDocs, addDoc, doc, deleteDoc, collection } from "firebase/firestore";
+import { getDocs, addDoc, doc, deleteDoc, collection, setDoc } from "firebase/firestore";
 
 // CSS and child component imports
 import './AdminPanel.css';
@@ -18,6 +18,10 @@ const AdminPanel = () => {
     const [xmlFile, setXmlFile] = useState(null);               // Selected XML file
     const [loading, setLoading] = useState(false);              // Loading state for XML import
     const [showRoutineSetup, setShowRoutineSetup] = useState(false); // Show/hide RoutineSetup modal
+    const [editingId, setEditingId] = useState(null);
+    const [editExamType, setEditExamType] = useState("Theory");
+    const [editFailureRate, setEditFailureRate] = useState(0);
+
 
     const navigate = useNavigate();
     const auth = getAuth();
@@ -154,8 +158,14 @@ const AdminPanel = () => {
 
                         const name1 = cells[1]?.textContent.trim();
                         const credit1 = cells[2]?.textContent.trim();
+                        const examType1 = cells[3]?.textContent.trim() || "Theory";
+                        const failRate1 = parseFloat(cells[4]?.textContent.trim()) || 0;
+
                         const name2 = cells[5]?.textContent.trim();
                         const credit2 = cells[6]?.textContent.trim();
+                        const examType2 = cells[7]?.textContent.trim() || "Theory";
+                        const failRate2 = parseFloat(cells[8]?.textContent.trim()) || 0;
+
 
                         // Add subject to semester1 if it doesn’t already exist
                         if (name1 && credit1 && !existingSubjectsSet.has(name1 + "|" + semester1)) {
@@ -168,7 +178,9 @@ const AdminPanel = () => {
                             ), {
                                 subjectName: name1,
                                 credit: Number(credit1),
-                                year: getYearFromSemester(semester1)
+                                year: getYearFromSemester(semester1),
+                                examType: examType1,
+                                pastFailureRate: failRate1
                             });
                         }
 
@@ -183,7 +195,9 @@ const AdminPanel = () => {
                             ), {
                                 subjectName: name2,
                                 credit: Number(credit2),
-                                year: getYearFromSemester(semester2)
+                                year: getYearFromSemester(semester2),
+                                examType: examType2,
+                                pastFailureRate: failRate2
                             });
                         }
                     }
@@ -211,6 +225,31 @@ const AdminPanel = () => {
         if (semester.includes("7th") || semester.includes("8th")) return "4th Year";
         return "";
     };
+    const handleSaveEdit = async (subj) => {
+        try {
+            const docRef = doc(
+                db,
+                "departments", department,
+                "batches", batch,
+                "semesters", subj.semester,
+                "subjects", subj.id
+            );
+
+            await setDoc(docRef, {
+                ...subj,
+                examType: editExamType,
+                pastFailureRate: Number(editFailureRate)
+            }, { merge: true });
+
+            alert("Subject updated!");
+            setEditingId(null);
+            fetchSubjects();
+        } catch (err) {
+            console.error("Failed to update subject:", err);
+            alert("Update failed.");
+        }
+    };
+
 
     // ----------------------- JSX Layout -----------------------
     return (
@@ -293,8 +332,41 @@ const AdminPanel = () => {
                                                 <ul className="subject-list">
                                                     {subjects.map((subj) => (
                                                         <li key={subj.id}>
-                                                            <span>{subj.subjectName} - {subj.credit} credit(s)</span>
-                                                            <button onClick={() => handleDelete(subj.id, subj.semester)}>🗑️</button>
+                                                            {editingId === subj.id ? (
+                                                                <div className="edit-mode">
+                                                                    <span><strong>{subj.subjectName}</strong></span>
+                                                                    <span>{subj.credit} credit(s)</span>
+                                                                    <select
+                                                                        value={editExamType}
+                                                                        onChange={(e) => setEditExamType(e.target.value)}
+                                                                    >                                                                        <option value="Theory">Theory</option>
+                                                                        <option value="Numerical">Numerical</option>
+                                                                    </select>
+                                                                    <input type="number"
+                                                                        min="0" max="1" step="0.1"
+                                                                        value={editFailureRate}
+                                                                        onChange={(e) => setEditFailureRate(e.target.value)}
+                                                                    />
+                                                                    <button onClick={() => handleSaveEdit(subj)}>💾 Save</button>
+                                                                    <button onClick={() => setEditingId(null)}>❌ Cancel</button>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="view-mode">
+                                                                    <span><strong>{subj.subjectName}</strong> - {subj.credit} credit(s)</span>
+                                                                    <span> | Type: {subj.examType || "Theory"} </span>
+                                                                    <span> | Fail: {subj.pastFailureRate ?? 0} </span>
+                                                                    <div className="action-buttons-row">
+                                                                        <button onClick={() => {
+                                                                            setEditingId(subj.id);
+                                                                            setEditExamType(subj.examType || "Theory");
+                                                                            setEditFailureRate(subj.pastFailureRate ?? 0);
+                                                                        }}>✏️ Edit</button>
+
+                                                                        <button onClick={() => handleDelete(subj.id, subj.semester)}>🗑️</button>
+                                                                    </div>
+
+                                                                </div>
+                                                            )}
                                                         </li>
                                                     ))}
                                                 </ul>
